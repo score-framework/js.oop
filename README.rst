@@ -4,10 +4,9 @@ score.oop
 =========
 
 This module provides helpers for supporting an object oriented programming
-style, which is :ref:`our preferred way of programming in javascript
-<js_coding_standards>`. Several implementation details are heavily dependent
-on personal taste, which means that it is well possible that you might
-encounter some alien definitions.
+style, which is our preferred way of programming in javascript. Several
+implementation details are heavily dependent on personal taste, which means
+that it is well possible that you might encounter some alien definitions.
 
 The whole module tries to mimic classes in python for two reasons:
 

@@ -358,7 +358,7 @@ define('lib/score/oop', [], function() {
         };
         cls.prototype.off = function(eventList, callback) {
             if (typeof this.__event_listeners__ === 'undefined') {
-                return;
+                return this;
             }
             var events = eventList.split(/\s+/);
             for (var i = 0; i < events.length; i++) {
@@ -450,7 +450,7 @@ define('lib/score/oop', [], function() {
         };
         cls.off = function(eventList, callback) {
             if (typeof cls.__event_listeners__ === 'undefined') {
-                return;
+                return cls;
             }
             var events = eventList.split(/\s+/);
             for (var i = 0; i < events.length; i++) {

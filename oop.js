@@ -190,8 +190,8 @@ define('lib/score/oop', [], function() {
         if (typeof conf === 'undefined') {
             conf = {};
         }
-        var cls, clsName;
-        clsName = conf.__name__ ? conf.__name__ : 'UnnamedClass';
+        var clsName = conf.__name__ ? conf.__name__ : 'UnnamedClass';
+        var cls;
         if (typeof conf.__init__ !== 'undefined') {
             cls = createSubFunc(conf.__parent__, conf.__init__, clsName);
         } else if (conf.__parent__) {
@@ -257,19 +257,19 @@ define('lib/score/oop', [], function() {
             };
         }
         cls.prototype.__class__ = cls;
-        for (var attr in conf) {
-            if (attr[0] === '_' && attr[1] === '_') {
+        for (var parent = conf.__parent__; parent; parent = parent.__conf__.__parent__) {
+            if (!parent.__conf__.__static__) {
                 continue;
             }
-            var value = conf[attr];
-            if (typeof value === 'function') {
-                var __super__ = null;
-                if (conf.__parent__ && typeof conf.__parent__.prototype[attr] === 'function') {
-                    __super__ = conf.__parent__.prototype[attr];
+            for (var attr in parent.__conf__.__static__) {
+                if (attr[0] === '_' && attr[1] === '_') {
+                    continue;
                 }
-                value = createSubFunc(__super__, conf[attr], clsName + '__' + attr);
+                var value = parent.__conf__.__static__[attr];
+                if (typeof value === 'function') {
+                    cls[attr] = parent[attr];
+                }
             }
-            cls.prototype[attr] = value;
         }
         if (conf.__static__) {
             if (conf.__static__.__events__) {
@@ -286,29 +286,30 @@ define('lib/score/oop', [], function() {
                         __super__ = conf.__parent__.__conf__.__static__[attr];
                     }
                     value = createSubFunc(__super__, conf.__static__[attr], clsName + '__' + attr);
-                    if (typeof cls.prototype[attr] === 'undefined') {
-                        cls.prototype[attr] = (function(value) {
-                            return function() {
-                                value.apply(this.__class__, arguments);
-                            };
-                        })(value);
-                    }
+                    cls.prototype[attr] = (function(value) {
+                        return function() {
+                            return value.apply(this.__class__, arguments);
+                        };
+                    })(value);
                 } else {
                     cls.prototype[attr] = value;
                 }
                 cls[attr] = value;
             }
         }
-        if (conf.__parent__ && conf.__parent__.__conf__.__static__) {
-            for (var attr in conf.__parent__.__conf__.__static__) {
-                if (attr[0] === '_' && attr[1] === '_') {
-                    continue;
-                }
-                var value = conf.__parent__.__conf__.__static__[attr];
-                if (typeof value === 'function') {
-                    cls[attr] = conf.__parent__[attr];
-                }
+        for (var attr in conf) {
+            if (attr[0] === '_' && attr[1] === '_') {
+                continue;
             }
+            var value = conf[attr];
+            if (typeof value === 'function') {
+                var __super__ = null;
+                if (conf.__parent__ && typeof conf.__parent__.prototype[attr] === 'function') {
+                    __super__ = conf.__parent__.prototype[attr];
+                }
+                value = createSubFunc(__super__, conf[attr], clsName + '__' + attr);
+            }
+            cls.prototype[attr] = value;
         }
         if (conf.__events__) {
             oop.makeEventListener(cls, conf.__events__);

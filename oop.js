@@ -5,181 +5,184 @@ define('lib/score/oop', [], function() {
     var superRe = /xyz/.test(function(){xyz;}) ? /\b__super__\b/ : /.*/;
     var argumentsRe = /xyz/.test(function(){xyz;}) ? /\barguments\b/ : /.*/;
 
-    var createSubFunc = function(__super__, func) {
+    var createSubFunc = function(__super__, func, name) {
+        if (!name) {
+            name = 'UnnamedClass';
+        }
         var numargs = func.length;
         if (!argumentsRe.test(func)) {
             if (numargs === 0) {
                 if (__super__ && superRe.test(func)) {
-                    return function() {
-                        var tmp = this.__super__;
-                        this.__super__ = __super__;
-                        var result = func.call(this);
-                        this.__super__ = tmp;
-                        return result;
-                    };
+                    return eval('[function ' + name + '() {\n' +
+                    '    var tmp = this.__super__;\n' +
+                    '    this.__super__ = __super__;\n' +
+                    '    var result = func.call(this);\n' +
+                    '    this.__super__ = tmp;\n' +
+                    '    return result;\n' +
+                    '}]')[0];
                 } else {
                     return func;
                 }
             } else if (numargs === 1) {
                 if (__super__ && superRe.test(func)) {
-                    return function() {
-                        var tmp = this.__super__;
-                        this.__super__ = __super__;
-                        var result = func.call(this, this);
-                        this.__super__ = tmp;
-                        return result;
-                    };
+                    return eval('[function ' + name + '() {\n' +
+                    '    var tmp = this.__super__;\n' +
+                    '    this.__super__ = __super__;\n' +
+                    '    var result = func.call(this, this);\n' +
+                    '    this.__super__ = tmp;\n' +
+                    '    return result;\n' +
+                    '}]')[0];
                 } else {
-                    return function() {
-                        return func.call(this, this);
-                    };
+                    return eval('[function ' + name + '() {\n' +
+                    '    return func.call(this, this);\n' +
+                    '}]')[0];
                 }
             } else if (numargs === 2) {
                 if (__super__ && superRe.test(func)) {
-                    return function(arg1) {
-                        var tmp = this.__super__;
-                        this.__super__ = __super__;
-                        var result = func.call(this, this, arg1);
-                        this.__super__ = tmp;
-                        return result;
-                    };
+                    return eval('[function ' + name + '(arg1) {\n' +
+                    '    var tmp = this.__super__;\n' +
+                    '    this.__super__ = __super__;\n' +
+                    '    var result = func.call(this, this, arg1);\n' +
+                    '    this.__super__ = tmp;\n' +
+                    '    return result;\n' +
+                    '}]')[0];
                 } else {
-                    return function(arg1) {
-                        return func.call(this, this, arg1);
-                    };
+                    return eval('[function ' + name + '(arg1) {\n' +
+                    '    return func.call(this, this, arg1);\n' +
+                    '}]')[0];
                 }
             } else if (numargs === 3) {
                 if (__super__ && superRe.test(func)) {
-                    return function(arg1, arg2) {
-                        var tmp = this.__super__;
-                        this.__super__ = __super__;
-                        var result = func.call(this, this, arg1, arg2);
-                        this.__super__ = tmp;
-                        return result;
-                    };
+                    return eval('[function ' + name + '(arg1, arg2) {\n' +
+                    '    var tmp = this.__super__;\n' +
+                    '    this.__super__ = __super__;\n' +
+                    '    var result = func.call(this, this, arg1, arg2);\n' +
+                    '    this.__super__ = tmp;\n' +
+                    '    return result;\n' +
+                    '}]')[0];
                 } else {
-                    return function(arg1, arg2) {
-                        return func.call(this, this, arg1, arg2);
-                    };
+                    return eval('[function ' + name + '(arg1, arg2) {\n' +
+                    '    return func.call(this, this, arg1, arg2);\n' +
+                    '}]')[0];
                 }
             } else if (numargs === 4) {
                 if (__super__ && superRe.test(func)) {
-                    return function(arg1, arg2, arg3) {
-                        var tmp = this.__super__;
-                        this.__super__ = __super__;
-                        var result = func.call(this, this, arg1, arg2, arg3);
-                        this.__super__ = tmp;
-                        return result;
-                    };
+                    return eval('[function ' + name + '(arg1, arg2, arg3) {\n' +
+                    '    var tmp = this.__super__;\n' +
+                    '    this.__super__ = __super__;\n' +
+                    '    var result = func.call(this, this, arg1, arg2, arg3);\n' +
+                    '    this.__super__ = tmp;\n' +
+                    '    return result;\n' +
+                    '}]')[0];
                 } else {
-                    return function(arg1, arg2, arg3) {
-                        return func.call(this, this, arg1, arg2, arg3);
-                    };
+                    return eval('[function ' + name + '(arg1, arg2, arg3) {\n' +
+                    '    return func.call(this, this, arg1, arg2, arg3);\n' +
+                    '}]')[0];
                 }
             } else if (numargs === 5) {
                 if (__super__ && superRe.test(func)) {
-                    return function(arg1, arg2, arg3, arg4) {
-                        var tmp = this.__super__;
-                        this.__super__ = __super__;
-                        var result = func.call(this, this, arg1, arg2, arg3, arg4);
-                        this.__super__ = tmp;
-                        return result;
-                    };
+                    return eval('[function ' + name + '(arg1, arg2, arg3, arg4) {\n' +
+                    '    var tmp = this.__super__;\n' +
+                    '    this.__super__ = __super__;\n' +
+                    '    var result = func.call(this, this, arg1, arg2, arg3, arg4);\n' +
+                    '    this.__super__ = tmp;\n' +
+                    '    return result;\n' +
+                    '}]')[0];
                 } else {
-                    return function(arg1, arg2, arg3, arg4) {
-                        return func.call(this, this, arg1, arg2, arg3, arg4);
-                    };
+                    return eval('[function ' + name + '(arg1, arg2, arg3, arg4) {\n' +
+                    '    return func.call(this, this, arg1, arg2, arg3, arg4);\n' +
+                    '}]')[0];
                 }
             } else if (numargs === 6) {
                 if (__super__ && superRe.test(func)) {
-                    return function(arg1, arg2, arg3, arg4, arg5) {
-                        var tmp = this.__super__;
-                        this.__super__ = __super__;
-                        var result = func.call(this, this, arg1, arg2, arg3, arg4, arg5);
-                        this.__super__ = tmp;
-                        return result;
-                    };
+                    return eval('[function ' + name + '(arg1, arg2, arg3, arg4, arg5) {\n' +
+                    '    var tmp = this.__super__;\n' +
+                    '    this.__super__ = __super__;\n' +
+                    '    var result = func.call(this, this, arg1, arg2, arg3, arg4, arg5);\n' +
+                    '    this.__super__ = tmp;\n' +
+                    '    return result;\n' +
+                    '}]')[0];
                 } else {
-                    return function(arg1, arg2, arg3, arg4, arg5) {
-                        return func.call(this, this, arg1, arg2, arg3, arg4, arg5);
-                    };
+                    return eval('[function ' + name + '(arg1, arg2, arg3, arg4, arg5) {\n' +
+                    '    return func.call(this, this, arg1, arg2, arg3, arg4, arg5);\n' +
+                    '}]')[0];
                 }
             } else if (numargs === 7) {
                 if (__super__ && superRe.test(func)) {
-                    return function(arg1, arg2, arg3, arg4, arg5, arg6) {
-                        var tmp = this.__super__;
-                        this.__super__ = __super__;
-                        var result = func.call(this, this, arg1, arg2, arg3, arg4, arg5, arg6);
-                        this.__super__ = tmp;
-                        return result;
-                    };
+                    return eval('[function ' + name + '(arg1, arg2, arg3, arg4, arg5, arg6) {\n' +
+                    '    var tmp = this.__super__;\n' +
+                    '    this.__super__ = __super__;\n' +
+                    '    var result = func.call(this, this, arg1, arg2, arg3, arg4, arg5, arg6);\n' +
+                    '    this.__super__ = tmp;\n' +
+                    '    return result;\n' +
+                    '}]')[0];
                 } else {
-                    return function(arg1, arg2, arg3, arg4, arg5, arg6) {
-                        return func.call(this, this, arg1, arg2, arg3, arg4, arg5, arg6);
-                    };
+                    return eval('[function ' + name + '(arg1, arg2, arg3, arg4, arg5, arg6) {\n' +
+                    '    return func.call(this, this, arg1, arg2, arg3, arg4, arg5, arg6);\n' +
+                    '}]')[0];
                 }
             } else if (numargs === 8) {
                 if (__super__ && superRe.test(func)) {
-                    return function(arg1, arg2, arg3, arg4, arg5, arg6, arg7) {
-                        var tmp = this.__super__;
-                        this.__super__ = __super__;
-                        var result = func.call(this, this, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
-                        this.__super__ = tmp;
-                        return result;
-                    };
+                    return eval('[function ' + name + '(arg1, arg2, arg3, arg4, arg5, arg6, arg7) {\n' +
+                    '    var tmp = this.__super__;\n' +
+                    '    this.__super__ = __super__;\n' +
+                    '    var result = func.call(this, this, arg1, arg2, arg3, arg4, arg5, arg6, arg7);\n' +
+                    '    this.__super__ = tmp;\n' +
+                    '    return result;\n' +
+                    '}]')[0];
                 } else {
-                    return function(arg1, arg2, arg3, arg4, arg5, arg6, arg7) {
-                        return func.call(this, this, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
-                    };
+                    return eval('[function ' + name + '(arg1, arg2, arg3, arg4, arg5, arg6, arg7) {\n' +
+                    '    return func.call(this, this, arg1, arg2, arg3, arg4, arg5, arg6, arg7);\n' +
+                    '}]')[0];
                 }
             }
         }
         if (!argumentsRe.test(func)) {
             var args = Array(numargs + 1);
             if (__super__ && superRe.test(func)) {
-                return function() {
-                    args[0] = this;
-                    for (var i = numargs - 1; i >= 0; i--) {
-                        args[i + 1] = arguments[i];
-                    }
-                    var tmp = this.__super__;
-                    this.__super__ = __super__;
-                    var result = func.apply(this, args);
-                    this.__super__ = tmp;
-                    return result;
-                };
+                return eval('[function ' + name + '() {\n' +
+                '    args[0] = this;\n' +
+                '    for (var i = numargs - 1; i >= 0; i--) {\n' +
+                '        args[i + 1] = arguments[i];\n' +
+                '    }\n' +
+                '    var tmp = this.__super__;\n' +
+                '    this.__super__ = __super__;\n' +
+                '    var result = func.apply(this, args);\n' +
+                '    this.__super__ = tmp;\n' +
+                '    return result;\n' +
+                '}]')[0];
             } else {
-                return function() {
-                    args[0] = this;
-                    for (var i = numargs - 1; i >= 0; i--) {
-                        args[i + 1] = arguments[i];
-                    }
-                    return func.apply(this, args);
-                };
+                return eval('[function ' + name + '() {\n' +
+                '    args[0] = this;\n' +
+                '    for (var i = numargs - 1; i >= 0; i--) {\n' +
+                '        args[i + 1] = arguments[i];\n' +
+                '    }\n' +
+                '    return func.apply(this, args);\n' +
+                '}]')[0];
             }
         }
         if (__super__ && superRe.test(func)) {
-            return function() {
-                var args = Array(arguments.length + 1);
-                args[0] = this;
-                for (var i = arguments.length - 1; i >= 0; i--) {
-                    args[i + 1] = arguments[i];
-                }
-                var tmp = this.__super__;
-                this.__super__ = __super__;
-                var result = func.apply(this, args);
-                this.__super__ = tmp;
-                return result;
-            };
+            return eval('[function ' + name + '() {\n' +
+            '    var args = Array(arguments.length + 1);\n' +
+            '    args[0] = this;\n' +
+            '    for (var i = arguments.length - 1; i >= 0; i--) {\n' +
+            '        args[i + 1] = arguments[i];\n' +
+            '    }\n' +
+            '    var tmp = this.__super__;\n' +
+            '    this.__super__ = __super__;\n' +
+            '    var result = func.apply(this, args);\n' +
+            '    this.__super__ = tmp;\n' +
+            '    return result;\n' +
+            '}]')[0];
         } else {
-            return function() {
-                var args = Array(arguments.length + 1);
-                args[0] = this;
-                for (var i = arguments.length - 1; i >= 0; i--) {
-                    args[i + 1] = arguments[i];
-                }
-                return func.apply(this, args);
-            };
+            return eval('[function ' + name + '() {\n' +
+            '    var args = Array(arguments.length + 1);\n' +
+            '    args[0] = this;\n' +
+            '    for (var i = arguments.length - 1; i >= 0; i--) {\n' +
+            '        args[i + 1] = arguments[i];\n' +
+            '    }\n' +
+            '    return func.apply(this, args);\n' +
+            '}]')[0];
         }
     };
 
@@ -187,9 +190,10 @@ define('lib/score/oop', [], function() {
         if (typeof conf === 'undefined') {
             conf = {};
         }
-        var cls;
+        var cls, clsName;
+        clsName = conf.__name__ ? conf.__name__ : 'UnnamedClass';
         if (typeof conf.__init__ !== 'undefined') {
-            cls = createSubFunc(conf.__parent__, conf.__init__);
+            cls = createSubFunc(conf.__parent__, conf.__init__, clsName);
         } else if (conf.__parent__) {
             cls = createSubFunc(conf.__parent__, function(self) {
                 var args = [];
@@ -197,9 +201,9 @@ define('lib/score/oop', [], function() {
                     args.push(arguments[i]);
                 }
                 conf.__parent__.apply(self, args);
-            });
+            }, clsName);
         } else {
-            cls = createSubFunc(null, function() {});
+            cls = createSubFunc(null, function() {}, clsName);
         }
         if (conf.__parent__) {
             cls.__parent__ = conf.__parent__;
@@ -263,7 +267,7 @@ define('lib/score/oop', [], function() {
                 if (conf.__parent__ && typeof conf.__parent__.prototype[attr] === 'function') {
                     __super__ = conf.__parent__.prototype[attr];
                 }
-                value = createSubFunc(__super__, conf[attr]);
+                value = createSubFunc(__super__, conf[attr], clsName + '__' + attr);
             }
             cls.prototype[attr] = value;
         }
@@ -281,7 +285,7 @@ define('lib/score/oop', [], function() {
                     if (conf.__parent__ && conf.__parent__.__conf__.__static__ && typeof conf.__parent__.__conf__.__static__[attr] === 'function') {
                         __super__ = conf.__parent__.__conf__.__static__[attr];
                     }
-                    value = createSubFunc(__super__, conf.__static__[attr]);
+                    value = createSubFunc(__super__, conf.__static__[attr], clsName + '__' + attr);
                     if (typeof cls.prototype[attr] === 'undefined') {
                         cls.prototype[attr] = (function(value) {
                             return function() {

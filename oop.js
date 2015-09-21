@@ -405,9 +405,19 @@ define('lib/score/oop', [], function() {
             for (var i = 1; i < arguments.length; i++) {
                 args.push(arguments[i]);
             }
-            var result = true;
+            var listeners = [];
             for (var i = 0; i < this.__event_listeners__[event].length; i++) {
-                var tmp = this.__event_listeners__[event][i].apply(this, args);
+                listeners.push(this.__event_listeners__[event][i]);
+            }
+            var result = true;
+            for (var i = 0; i < listeners.length; i++) {
+                if (typeof this.__event_listeners__ === 'undefined' || typeof this.__event_listeners__[event] === 'undefined') {
+                    break;
+                }
+                if (this.__event_listeners__[event].indexOf(listeners[i]) < 0) {
+                    continue;
+                }
+                var tmp = listeners[i].apply(this, args);
                 if (typeof tmp !== 'undefined' && !tmp) {
                     result = false;
                 }
@@ -497,9 +507,19 @@ define('lib/score/oop', [], function() {
             for (var i = 1; i < arguments.length; i++) {
                 args.push(arguments[i]);
             }
-            var result = true;
+            var listeners = [];
             for (var i = 0; i < cls.__event_listeners__[event].length; i++) {
-                var tmp = cls.__event_listeners__[event][i].apply(cls, args);
+                listeners.push(cls.__event_listeners__[event][i]);
+            }
+            var result = true;
+            for (var i = 0; i < listeners.length; i++) {
+                if (typeof cls.__event_listeners__ === 'undefined' || typeof cls.__event_listeners__[event] === 'undefined') {
+                    break;
+                }
+                if (cls.__event_listeners__[event].indexOf(listeners[i]) < 0) {
+                    continue;
+                }
+                var tmp = listeners[i].apply(cls, args);
                 if (typeof tmp !== 'undefined' && !tmp) {
                     result = false;
                 }

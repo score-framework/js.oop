@@ -239,10 +239,17 @@ define('lib/score/oop', [], function() {
                     args.push(arguments[i]);
                 }
                 return function() {
-                    if (arguments.length && typeof console === 'object' && typeof console.warn === 'function') {
-                        console.warn('ignoring new arguments during invocation of bound function with arguments');
+                    var newArgs = args;
+                    if (arguments.length) {
+                        newArgs = [];
+                        for (var i = 0; i < args.length; i++) {
+                            newArgs.push(args[i]);
+                        }
+                        for (var i = 0; i < arguments.length; i++) {
+                            newArgs.push(arguments[i]);
+                        }
                     }
-                    return self[funcname].apply(self, args);
+                    return self[funcname].apply(self, newArgs);
                 };
             };
         }

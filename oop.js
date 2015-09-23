@@ -204,6 +204,9 @@ define('lib/score/oop', [], function() {
         // create the naked class object
         var cls;
         if (typeof conf.__init__ !== 'undefined') {
+            if (typeof conf.__init__ !== 'function') {
+                throw new Error(clsName.'.__init__ must be a function');
+            }
             cls = createSubFunc(conf.__parent__, conf.__init__, clsName);
         } else if (conf.__parent__) {
             cls = createSubFunc(conf.__parent__, function(self) {

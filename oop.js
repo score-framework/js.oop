@@ -190,7 +190,16 @@ define('lib/score/oop', [], function() {
         if (typeof conf === 'undefined') {
             conf = {};
         }
-        var clsName = conf.__name__ ? conf.__name__ : 'UnnamedClass';
+        var clsName = 'UnnamedClass';
+        if (conf.__name__) {
+            if (!/^_*[A-Z]/.test(conf.__name__)) {
+                console.warn('Class names should start with a capital letter', conf.__name__);
+            }
+            if (!/^_*[a-zA-Z][a-zA-Z0-9_]*$/.test(conf.__name__)) {
+                throw new Error('Invalid class name "' + conf.__name__ + '"');
+            }
+            clsName = conf.__name__;
+        }
         var cls;
         if (typeof conf.__init__ !== 'undefined') {
             cls = createSubFunc(conf.__parent__, conf.__init__, clsName);

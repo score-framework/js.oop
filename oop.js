@@ -190,6 +190,7 @@ define('lib/score/oop', [], function() {
         if (typeof conf === 'undefined') {
             conf = {};
         }
+        // make sure we have a sane class name
         var clsName = 'UnnamedClass';
         if (conf.__name__) {
             if (!/^_*[A-Z]/.test(conf.__name__)) {
@@ -200,6 +201,7 @@ define('lib/score/oop', [], function() {
             }
             clsName = conf.__name__;
         }
+        // create the naked class object
         var cls;
         if (typeof conf.__init__ !== 'undefined') {
             cls = createSubFunc(conf.__parent__, conf.__init__, clsName);
@@ -214,6 +216,7 @@ define('lib/score/oop', [], function() {
         } else {
             cls = createSubFunc(null, function() {}, clsName);
         }
+        // handle inheritance
         if (conf.__parent__) {
             cls.__parent__ = conf.__parent__;
             if (typeof Object.create === 'function') {
@@ -262,7 +265,10 @@ define('lib/score/oop', [], function() {
                 };
             };
         }
+        // add some magic members
         cls.__conf__ = conf;
+        cls.prototype.__class__ = cls;
+        // add toString()
         if (conf.__name__) {
             cls.__name__ = conf.__name__;
             cls.toString = function() {
@@ -272,7 +278,7 @@ define('lib/score/oop', [], function() {
                 return cls.__name__;
             };
         }
-        cls.prototype.__class__ = cls;
+        // set static members of parent classes
         for (var parent = conf.__parent__; parent; parent = parent.__conf__.__parent__) {
             if (!parent.__conf__.__static__) {
                 continue;
@@ -287,6 +293,7 @@ define('lib/score/oop', [], function() {
                 }
             }
         }
+        // set static members of this class
         if (conf.__static__) {
             if (conf.__static__.__events__) {
                 oop.makeStaticEventListener(cls, conf.__static__.__events__);
@@ -313,6 +320,7 @@ define('lib/score/oop', [], function() {
                 cls[attr] = value;
             }
         }
+        // set instance members
         for (var attr in conf) {
             if (attr[0] === '_' && attr[1] === '_') {
                 continue;
@@ -327,6 +335,7 @@ define('lib/score/oop', [], function() {
             }
             cls.prototype[attr] = value;
         }
+        // make event listener
         if (conf.__events__) {
             oop.makeEventListener(cls, conf.__events__);
         }

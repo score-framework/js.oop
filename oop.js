@@ -506,7 +506,12 @@ define('lib/score/oop', [], function() {
         trigger: eventFunctions.trigger,
 
         __bind__: function(self, funcName) {
-            console.warn('obj.__bind__("' + funcName + '") is deprecated, use obj.' + funcName + ' instead');
+            if (issuedDeprecationWarnings.__bind__ < 3) {
+                console.warn('obj.__bind__("' + funcName + '") is deprecated, use obj.' + funcName + ' instead');
+                if (++issuedDeprecationWarnings.__bind__ >= 3) {
+                    console.info('**Further wanings regarding obj.__bind__() will be suppressed');
+                }
+            }
             if (typeof self[funcName] !== 'function') {
                 throw new Error('Cannot __bind__() ' + self.__class__.__name__ + '.' + funcName + ': not a function');
             }
@@ -518,6 +523,8 @@ define('lib/score/oop', [], function() {
         }
 
     };
+
+    var issuedDeprecationWarnings = {__bind__: 0};
 
     oop.Class.__name__ = 'Class';
 

@@ -2,9 +2,16 @@ define('lib/score/oop', [], function() {
 
     var oop = {};
 
-    var superRe = /xyz/.test(function(){xyz;}) ? /\b__super__\b/ : /.*/;
-    var argumentsRe = /xyz/.test(function(){xyz;}) ? /\barguments\b/ : /.*/;
+    var superRe = /\b__super__\b/;
+    var argumentsRe = /\barguments\b/;
 
+    /**
+     * Extracts a function's parameter names.
+     * Expects Function.toString() to return the whole function definition,
+     * which should work for all supported browsers. Handles comments and
+     * arbitrary whitespace in function definition correctly.
+     * @return array
+     */
     var extractParameterNames = function(func) {
         var i = 0;
         var funcStr = func.toString();
@@ -39,7 +46,15 @@ define('lib/score/oop', [], function() {
             .split(/\s*,\s*/);
     };
 
-    var createSubFunc = function(__super__, func, name) {
+    /**
+     * Creates a wrapper function for given *function_* with given *name*,
+     * which will provide various features:
+     * - The wrapped *function_* will always receive `this` as first argument.
+     * - The given *__super__* function will be accessible as
+     *   `this.__super__()` within the function body.
+     */
+    var createSubFunc = function(__super__, function_, name) {
+        var func = function_;
         if (!argumentsRe.test(func) && func.length === 0 && (!__super__ || !superRe.test(func))) {
             // none of the features below are required,
             // just return the function
@@ -173,210 +188,6 @@ define('lib/score/oop', [], function() {
         return eval('[' + declaration + body + ']')[0];
     };
 
-    var makeEventListener = function(cls) {
-        // XXX: Almost an exact copy of makeStaticEventListener(),
-        //      update accordingly.
-        var validEvents = {};
-        var acceptAll = false;
-        for (var c = cls; c; c = c.__parent__) {
-            if (typeof c.__conf__.__events__ === 'undefined') {
-                continue;
-            }
-            if (c.__conf__.__events__ instanceof Array) {
-                for (var i = 0; i < c.__conf__.__events__.length; i++) {
-                    empty = false;
-                    validEvents[c.__conf__.__events__[i]] = true;
-                }
-            } else if (c.__conf__.__events__) {
-                acceptAll = true;
-                break;
-            }
-        }
-        cls.prototype.on = function(eventList, callback) {
-            if (typeof this.__event_listeners__ === 'undefined') {
-                this.__event_listeners__ = {};
-            }
-            var events = eventList.split(/\s+/);
-            for (var i = 0; i < events.length; i++) {
-                var event = events[i];
-                if (!event.length) {
-                    continue;
-                }
-                if (!acceptAll && !validEvents[event]) {
-                    throw new Error('Invalid event "' + event + '"');
-                }
-                if (typeof this.__event_listeners__[event] === 'undefined') {
-                    this.__event_listeners__[event] = [];
-                }
-                this.__event_listeners__[event].push(callback);
-            }
-            return this;
-        };
-        cls.prototype.off = function(eventList, callback) {
-            if (typeof this.__event_listeners__ === 'undefined') {
-                return this;
-            }
-            var events = eventList.split(/\s+/);
-            for (var i = 0; i < events.length; i++) {
-                var event = events[i];
-                if (!event.length) {
-                    continue;
-                }
-                if (!acceptAll && !validEvents[event]) {
-                    throw new Error('Invalid event "' + event + '"');
-                }
-                if (typeof this.__event_listeners__[event] === 'undefined') {
-                    continue;
-                }
-                if (typeof callback === 'undefined') {
-                    delete this.__event_listeners__[event];
-                } else {
-                    var idx = this.__event_listeners__[event].indexOf(callback);
-                    if (idx < 0) {
-                        continue;
-                    }
-                    this.__event_listeners__[event].splice(idx, 1);
-                    if (!this.__event_listeners__[event].length) {
-                        delete this.__event_listeners__[event];
-                    }
-                }
-            }
-            return this;
-        };
-        cls.prototype.trigger = function(event) {
-            if (!acceptAll && !validEvents[event]) {
-                throw new Error('Invalid event "' + event + '"');
-            }
-            if (typeof this.__event_listeners__ === 'undefined' || typeof this.__event_listeners__[event] === 'undefined') {
-                return true;
-            }
-            var args = [];
-            for (var i = 1; i < arguments.length; i++) {
-                args.push(arguments[i]);
-            }
-            var listeners = [];
-            for (var i = 0; i < this.__event_listeners__[event].length; i++) {
-                listeners.push(this.__event_listeners__[event][i]);
-            }
-            var result = true;
-            for (var i = 0; i < listeners.length; i++) {
-                if (typeof this.__event_listeners__ === 'undefined' || typeof this.__event_listeners__[event] === 'undefined') {
-                    break;
-                }
-                if (this.__event_listeners__[event].indexOf(listeners[i]) < 0) {
-                    continue;
-                }
-                var tmp = listeners[i].apply(this, args);
-                if (typeof tmp !== 'undefined' && !tmp) {
-                    result = false;
-                }
-            }
-            return result;
-        };
-    };
-
-    var makeStaticEventListener = function(cls) {
-        // XXX: Almost an exact copy of makeEventListener(),
-        //      update accordingly.
-        var validEvents = {};
-        var acceptAll = false;
-        for (var c = cls; c; c = c.__parent__) {
-            if (typeof c.__conf__.__static__ === 'undefined' || typeof c.__conf__.__static__.__events__ === 'undefined') {
-                continue;
-            }
-            if (c.__conf__.__static__.__events__ instanceof Array) {
-                for (var i = 0; i < c.__conf__.__static__.__events__.length; i++) {
-                    empty = false;
-                    validEvents[c.__conf__.__static__.__events__[i]] = true;
-                }
-            } else if (c.__conf__.__static__.__events__) {
-                acceptAll = true;
-                break;
-            }
-        }
-        cls.on = function(eventList, callback) {
-            if (typeof cls.__event_listeners__ === 'undefined') {
-                cls.__event_listeners__ = {};
-            }
-            var events = eventList.split(/\s+/);
-            for (var i = 0; i < events.length; i++) {
-                var event = events[i];
-                if (!event.length) {
-                    continue;
-                }
-                if (!acceptAll && !validEvents[event]) {
-                    throw new Error('Invalid event "' + event + '"');
-                }
-                if (typeof cls.__event_listeners__[event] === 'undefined') {
-                    cls.__event_listeners__[event] = [];
-                }
-                cls.__event_listeners__[event].push(callback);
-            }
-            return cls;
-        };
-        cls.off = function(eventList, callback) {
-            if (typeof cls.__event_listeners__ === 'undefined') {
-                return cls;
-            }
-            var events = eventList.split(/\s+/);
-            for (var i = 0; i < events.length; i++) {
-                var event = events[i];
-                if (!event.length) {
-                    continue;
-                }
-                if (!acceptAll && !validEvents[event]) {
-                    throw new Error('Invalid event "' + event + '"');
-                }
-                if (typeof cls.__event_listeners__[event] === 'undefined') {
-                    continue;
-                }
-                if (typeof callback === 'undefined') {
-                    delete cls.__event_listeners__[event];
-                } else {
-                    var idx = cls.__event_listeners__[event].indexOf(callback);
-                    if (idx < 0) {
-                        continue;
-                    }
-                    cls.__event_listeners__[event].splice(idx, 1);
-                    if (!cls.__event_listeners__[event].length) {
-                        delete cls.__event_listeners__[event];
-                    }
-                }
-            }
-            return cls;
-        };
-        cls.trigger = function(event) {
-            if (!acceptAll && !validEvents[event]) {
-                throw new Error('Invalid event "' + event + '"');
-            }
-            if (typeof cls.__event_listeners__ === 'undefined' || typeof cls.__event_listeners__[event] === 'undefined') {
-                return true;
-            }
-            var args = [];
-            for (var i = 1; i < arguments.length; i++) {
-                args.push(arguments[i]);
-            }
-            var listeners = [];
-            for (var i = 0; i < cls.__event_listeners__[event].length; i++) {
-                listeners.push(cls.__event_listeners__[event][i]);
-            }
-            var result = true;
-            for (var i = 0; i < listeners.length; i++) {
-                if (typeof cls.__event_listeners__ === 'undefined' || typeof cls.__event_listeners__[event] === 'undefined') {
-                    break;
-                }
-                if (cls.__event_listeners__[event].indexOf(listeners[i]) < 0) {
-                    continue;
-                }
-                var tmp = listeners[i].apply(cls, args);
-                if (typeof tmp !== 'undefined' && !tmp) {
-                    result = false;
-                }
-            }
-            return result;
-        };
-    };
-
     var checkConf = function(conf) {
         if (typeof conf !== 'object') {
             throw new Error('Class configuration not an object');
@@ -417,7 +228,6 @@ define('lib/score/oop', [], function() {
 
     oop.Class = function(conf) {
         checkConf(conf);
-        conf.__static_unbound__ = {};
         var clsName = conf.__name__;
         var parents = gatherParents(conf);
         // gather members
@@ -430,9 +240,12 @@ define('lib/score/oop', [], function() {
         parents.forEach(function(cls) {
             if (cls.__conf__.__static__) {
                 for (var attr in cls.__conf__.__static__) {
+                    if (attr[0] === '_' && attr[1] === '_') {
+                        continue;
+                    }
                     var thing = cls.__conf__.__static__[attr];
                     if (typeof thing === 'function') {
-                        staticMethods[attr] = cls.__conf__.__static_unbound__[attr];
+                        staticMethods[attr] = cls.__conf__.__static__.__unbound__[attr];
                     } else {
                         staticMembers[attr] = thing;
                     }
@@ -455,13 +268,14 @@ define('lib/score/oop', [], function() {
         var prototype = conf.__parent__ ? Object.create(conf.__parent__.prototype) : oop.Class.prototype;
         // gather static members
         if (conf.__static__) {
+            conf.__static__.__unbound__ = {}
             for (var attr in conf.__static__) {
                 var thing = conf.__static__[attr];
                 if (typeof thing === 'function') {
                     if (typeof staticMembers[attr] !== 'undefined') {
                         throw new Error('Static member ' + clsName + '.' + attr + ' was not a function in a parent class');
                     }
-                    conf.__static_unbound__[attr] = prototype[attr] = staticMethods[attr] = createSubFunc(staticMethods[attr], thing, clsName + '__' + attr);
+                    conf.__static__.__unbound__[attr] = prototype[attr] = staticMethods[attr] = createSubFunc(staticMethods[attr], thing, clsName + '__' + attr);
                 } else {
                     if (typeof staticMethods[attr] === 'function') {
                         throw new Error('Static member ' + clsName + '.' + attr + ' was a function in a parent class');
@@ -491,17 +305,7 @@ define('lib/score/oop', [], function() {
         // create class
         var cls = createConstructor(clsName, conf, parents, members, methods);
         for (var attr in staticMembers) {
-            if (conf.__static__[attr]) {
-                cls[attr] = staticMembers[attr];
-            } else {
-                (function(parent) {
-                    Object.defineProperty(cls, attr, {
-                        get: function() { return parent[attr]; },
-                        set: function(value) { parent[attr] = value; },
-                        enumerable: true,
-                    });
-                })(static2cls[attr]);
-            }
+            cls[attr] = staticMembers[attr];
         }
         for (var attr in staticMethods) {
             cls[attr] = staticMethods[attr].bind(cls);
@@ -513,22 +317,154 @@ define('lib/score/oop', [], function() {
         cls.toString = function() {
             return cls.__name__;
         };
-        // make event listener
-        // FIXME: the next few function calls should occur much earlier, before
-        // the call to createConstructor().  otherwise the resulting methods
-        // (on, off, etc.) cannot be bound to the instance by the constructor.
+        // handle event definitions
+        setEventNames(cls, conf, true);
         if (conf.__events__) {
-            makeEventListener(cls);
-        }
-        if (conf.__static__ && conf.__static__.__events__) {
-            makeStaticEventListener(cls);
+            setEventNames(cls, conf, false);
         }
         return cls;
     };
 
-    oop.Class.__conf__ = {
+    var setEventNames = function(cls, conf, static_) {
+        var names = {}, inheritedNames;
+        if (!static_ && conf.__parent__) {
+            inheritedNames = conf.__parent__.prototype.__events__.validNames;
+            if (inheritedNames === '__all__') {
+                names = '__all__';
+            } else {
+                for (var name in inheritedNames) {
+                    names[name] = inheritedNames[name];
+                }
+            }
+        }
+        var events = static_ ? conf.__static__.__events__ : conf.__events__;
+        if (events instanceof Array) {
+            for (var i = 0; i < events.length; i++) {
+                names[events[i]] = cls;
+            }
+        } else if (events) {
+            names = '__all__';
+        }
+        if (static_) {
+            cls.__events__ = {
+                validNames: names,
+                listeners: {}
+            };
+        } else {
+            cls.prototype.__events__ = {
+                validNames: names,
+                listeners: {}
+            };
+        }
+    };
 
+    var eventFunctions = {
+
+        on: function(self, eventList, callback) {
+            var events = eventList.trim().split(/\s+/);
+            for (var i = 0; i < events.length; i++) {
+                var event = events[i];
+                if (self.__events__.validNames !== '__all__' && !self.__events__.validNames[event]) {
+                    throw new Error('Invalid event "' + event + '"');
+                }
+                if (typeof self.__events__.listeners[event] === 'undefined') {
+                    self.__events__.listeners[event] = [];
+                }
+                self.__events__.listeners[event].push(callback);
+            }
+            return self;
+        },
+
+        off: function(self, eventList, callback) {
+            var events = eventList.trim().split(/\s+/);
+            for (var i = 0; i < events.length; i++) {
+                var event = events[i];
+                if (self.__events__.validNames !== '__all__' && !self.__events__.validNames[event]) {
+                    throw new Error('Invalid event "' + event + '"');
+                }
+                if (typeof self.__events__.listeners[event] === 'undefined') {
+                    continue;
+                }
+                if (typeof callback === 'undefined') {
+                    delete self.__events__.listeners[event];
+                } else {
+                    var idx = self.__events__.listeners[event].indexOf(callback);
+                    if (idx < 0) {
+                        continue;
+                    }
+                    if (self.__events__.listeners[event].length == 1) {
+                        delete self.__events__.listeners[event];
+                    } else {
+                        self.__events__.listeners[event].splice(idx, 1);
+                    }
+                }
+            }
+            return self;
+        },
+
+        trigger: function(self, event) {
+            if (self.__events__.validNames !== '__all__' && !self.__events__.validNames[event]) {
+                throw new Error('Invalid event "' + event + '"');
+            }
+            if (typeof self.__events__.listeners[event] === 'undefined') {
+                return true;
+            }
+            var args = [];
+            for (var i = 1; i < arguments.length; i++) {
+                args.push(arguments[i]);
+            }
+            var listeners = self.__events__.listeners[event].slice(0);
+            var result = true;
+            for (var i = 0; i < listeners.length; i++) {
+                var funcResult = listeners[i].apply(self, args);
+                if (typeof funcResult !== 'undefined' && !funcResult) {
+                    result = false;
+                }
+            }
+            return result;
+        }
+
+    };
+
+    oop.Class.__conf__ = {
         __name__: 'Class',
+
+        __static__: {
+
+            __events__: [],
+
+            on: eventFunctions.on,
+
+            off: eventFunctions.off,
+
+            trigger: eventFunctions.trigger,
+
+            __unbound__: {
+                on: function(eventList, callback) {
+                    return oop.Class.on.call(this, this, eventList, callback);
+                },
+                off: function(eventList, callback) {
+                    return oop.Class.off.call(this, this, eventList, callback);
+                },
+                trigger: function(event) {
+                    var args = new Array(arguments.length + 1)
+                    args[0] = this;
+                    for (var i = 0; i < arguments.length; i++) {
+                        args[i + 1] = arguments[i];
+                    }
+                    return oop.Class.trigger.apply(this, args);
+                },
+            }
+
+        },
+
+        __events__: [],
+
+        on: eventFunctions.on,
+
+        off: eventFunctions.off,
+
+        trigger: eventFunctions.trigger,
 
         __bind__: function(self, funcName) {
             console.warn('obj.__bind__("' + funcName + '") is deprecated, use obj.' + funcName + ' instead');
@@ -546,9 +482,38 @@ define('lib/score/oop', [], function() {
 
     oop.Class.__name__ = 'Class';
 
+    oop.Class.__events__ = {validNames: {}, listeners: {}};
+
+    oop.Class.on = oop.Class.__conf__.__static__.on.bind(oop.Class);
+
+    oop.Class.off = oop.Class.__conf__.__static__.off.bind(oop.Class);
+
+    oop.Class.trigger = oop.Class.__conf__.__static__.trigger.bind(oop.Class);
+
+    oop.Class.prototype.__events__ = {validNames: {}, listeners: {}};
+
+    oop.Class.prototype.on = function Class__on(eventList, callback) {
+        return eventFunctions.on.call(this, this, eventList, callback);
+    };
+
+    oop.Class.prototype.off = function Class__off(eventList, callback) {
+        return eventFunctions.off.call(this, this, eventList, callback);
+    };
+
+    oop.Class.prototype.trigger = function Class__trigger(event) {
+        var args = new Array(arguments.length + 1)
+        args[0] = this;
+        for (var i = 0; i < arguments.length; i++) {
+            args[i + 1] = arguments[i];
+        }
+        return eventFunctions.trigger.apply(this, args);
+    };
+
     oop.Class.prototype.toString = function() {
         return oop.Class.__conf__.toString.call(this, this);
     };
+
+    oop.Class.prototype.__str__ = oop.Class.prototype.toString;
 
     oop.Class.prototype.__bind__ = function(funcName) {
         return oop.Class.__conf__.__bind__.call(this, this, funcName);

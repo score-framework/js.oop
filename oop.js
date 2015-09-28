@@ -417,6 +417,7 @@ define('lib/score/oop', [], function() {
 
     oop.Class = function(conf) {
         checkConf(conf);
+        conf.__static_unbound__ = {};
         var clsName = conf.__name__;
         var parents = gatherParents(conf);
         // gather members
@@ -431,7 +432,7 @@ define('lib/score/oop', [], function() {
                 for (var attr in cls.__conf__.__static__) {
                     var thing = cls.__conf__.__static__[attr];
                     if (typeof thing === 'function') {
-                        staticMethods[attr] = thing;
+                        staticMethods[attr] = cls.__conf__.__static_unbound__[attr];
                     } else {
                         staticMembers[attr] = thing;
                     }
@@ -460,7 +461,7 @@ define('lib/score/oop', [], function() {
                     if (typeof staticMembers[attr] !== 'undefined') {
                         throw new Error('Static member ' + clsName + '.' + attr + ' was not a function in a parent class');
                     }
-                    prototype[attr] = staticMethods[attr] = createSubFunc(staticMethods[attr], thing, clsName + '__' + attr);
+                    conf.__static_unbound__[attr] = prototype[attr] = staticMethods[attr] = createSubFunc(staticMethods[attr], thing, clsName + '__' + attr);
                 } else {
                     if (typeof staticMethods[attr] === 'function') {
                         throw new Error('Static member ' + clsName + '.' + attr + ' was a function in a parent class');
@@ -490,7 +491,9 @@ define('lib/score/oop', [], function() {
         // create class
         var cls = createConstructor(clsName, conf, parents, members, methods);
         for (var attr in staticMembers) {
-            if (static2cls[attr]) {
+            if (conf.__static__[attr]) {
+                cls[attr] = staticMembers[attr];
+            } else {
                 (function(parent) {
                     Object.defineProperty(cls, attr, {
                         get: function() { return parent[attr]; },
@@ -498,12 +501,10 @@ define('lib/score/oop', [], function() {
                         enumerable: true,
                     });
                 })(static2cls[attr]);
-            } else {
-                cls[attr] = staticMembers[attr];
             }
         }
         for (var attr in staticMethods) {
-            cls[attr] = staticMethods[attr];
+            cls[attr] = staticMethods[attr].bind(cls);
         }
         cls.__conf__ = conf;
         cls.__name__ = conf.__name__;

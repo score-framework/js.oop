@@ -5,7 +5,7 @@ define('lib/score/oop', [], function() {
     var superRe = /xyz/.test(function(){xyz;}) ? /\b__super__\b/ : /.*/;
     var argumentsRe = /xyz/.test(function(){xyz;}) ? /\barguments\b/ : /.*/;
 
-    var functionParameterNames = function(func) {
+    var extractParameterNames = function(func) {
         var i = 0;
         var funcStr = func.toString();
         var skipTo = function(chr) {
@@ -45,7 +45,7 @@ define('lib/score/oop', [], function() {
             // just return the function
             return func;
         }
-        var args = functionParameterNames(func).slice(1);
+        var args = extractParameterNames(func).slice(1);
         var declaration = 'function ' + name + '(' + args.join(', ') + ') {\n';
         var body;
         if (argumentsRe.test(func)) {
@@ -72,9 +72,12 @@ define('lib/score/oop', [], function() {
             // __super__ value this way, even when calling one such function
             // from another.
             body = '    var __previous_super__ = this.__super__;\n' +
-                   '    this.__super__ = __super__;\n' +
+                   '    this.__super__ = __super__.bind(this);\n' +
                    body +
                    '    this.__super__ = __previous_super__;\n';
+        } else {
+            body = '    delete this.__super__;\n' +
+                   body;
         }
         body += '    return result;\n}';
         // console.log('[' + declaration + body + ']');
@@ -91,7 +94,7 @@ define('lib/score/oop', [], function() {
                 if (!__init__) {
                     __init__ = parents[i].__conf__.__init__;
                 } else {
-                    __parent_init__ = parents[i].__conf__.__init__;
+                    __parent_init__ = parents[i].__conf__.__wrapped_init__;
                     break;
                 }
             }
@@ -100,10 +103,10 @@ define('lib/score/oop', [], function() {
         if (!__init__) {
             args = [];
         } else {
-            args = functionParameterNames(__init__).slice(1);
+            args = extractParameterNames(__init__).slice(1);
         }
         var declaration = 'function ' + name + '(' + args.join(', ') + ') {\n';
-        var call, body = '';
+        var call, body;
         if (__init__ && argumentsRe.test(__init__)) {
             call = '        var args = [];\n' +
                    '        for (var i = 0; i < arguments.length; i++) {\n' +
@@ -141,6 +144,7 @@ define('lib/score/oop', [], function() {
             body += '    this.' + attr + ' = methods.' + attr + '.bind(this);\n';
         }
         if (__init__) {
+            conf.__wrapped_init__ = createSubFunc(__parent_init__, __init__, name + '__init__');
             var initCall;
             if (argumentsRe.test(__init__)) {
                 initCall = '    var args = new Array(arguments.length + 1);\n' +
@@ -158,7 +162,7 @@ define('lib/score/oop', [], function() {
             }
             if (__parent_init__) {
                 initCall = '    var __previous_super__ = this.__super__;\n' +
-                           '    this.__super__ = __parent_init__;\n' +
+                           '    this.__super__ = __parent_init__.bind(this);\n' +
                            initCall +
                            '    this.__super__ = __previous_super__;\n';
             }
@@ -397,10 +401,10 @@ define('lib/score/oop', [], function() {
     };
 
     var gatherParents = function(conf) {
+        var parents = [oop.Class];
         if (!conf.__parent__) {
-            return [];
+            return parents;
         }
-        var parents = [];
         for (var parent = conf.__parent__; parent; parent = parent.__conf__.__parent__) {
             parents.push(parent);
         }
@@ -448,7 +452,7 @@ define('lib/score/oop', [], function() {
             if (attr[0] === '_' && attr[1] === '_') {
                 continue;
             }
-            if (staticMethods[attr] || staticMembers[attr]) {
+            if (attr !== 'toString' && (staticMethods[attr] || staticMembers[attr])) {
                 throw new Error('Member ' + clsName + '.' + attr + ' was static in a parent class');
             }
         }
@@ -479,7 +483,7 @@ define('lib/score/oop', [], function() {
             }
             var thing = conf[attr];
             if (typeof thing === 'function') {
-                if (typeof members[attr] !== 'undefined') {
+                if (attr !== 'toString' && typeof members[attr] !== 'undefined') {
                     throw new Error('Member ' + clsName + '.' + attr + ' was not a function in a parent class');
                 }
                 prototype[attr] = methods[attr] = createSubFunc(methods[attr], thing, clsName + '__' + attr);
@@ -492,6 +496,12 @@ define('lib/score/oop', [], function() {
         }
         // create class
         var cls = createConstructor(clsName, conf, parents, members, methods);
+        for (var attr in staticMembers) {
+            cls[attr] = staticMembers[attr];
+        }
+        for (var attr in staticMethods) {
+            cls[attr] = staticMethods[attr];
+        }
         cls.__conf__ = conf;
         cls.__name__ = conf.__name__;
         cls.prototype = prototype;
@@ -512,8 +522,28 @@ define('lib/score/oop', [], function() {
         return cls;
     };
 
-    oop.Class.prototype.toString = function(self) {
-        return '<' + self.__class__.__name__ + ' object>';
+    oop.Class.__conf__ = {
+
+        __bind__: function(self, funcName) {
+            console.warn('obj.__bind__("' + funcName + '") is deprecated, use obj.' + funcName + ' instead');
+            if (typeof self[funcName] !== 'function') {
+                throw new Error('Cannot __bind__() ' + self.__class__.__name__ + '.' + funcName + ': not a function');
+            }
+            return self[funcName];
+        },
+
+        toString: function(self) {
+            return '<' + self.__class__.__name__ + ' object>';
+        }
+
+    };
+
+    oop.Class.prototype.toString = function() {
+        return oop.Class.__conf__.toString.call(this, this);
+    };
+
+    oop.Class.prototype.__bind__ = function(funcName) {
+        return oop.Class.__conf__.__bind__.call(this, this, funcName);
     };
 
     oop.Exception = function(message) {

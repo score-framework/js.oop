@@ -394,10 +394,13 @@ define('lib/score/oop', [], function() {
         // ensure __init__ is a function
         if (typeof conf.__init__ !== 'undefined') {
             if (typeof conf.__init__ !== 'function') {
-                throw new Error(clsName + '.__init__ must be a function');
+                throw new Error(conf.__name__ + '.__init__ must be a function');
             }
         }
-        // TODO: assert that conf.__parent__ is an oop.Class type
+        // check conf.__parent__
+        if (conf.__parent__ && !(conf.__parent__.__conf__ && conf.__parent__.__conf__.__name__)) {
+            throw new Error(conf.__name__ + '.__parent__ is not an oop.Class type');
+        }
     };
 
     var gatherParents = function(conf) {
@@ -421,9 +424,10 @@ define('lib/score/oop', [], function() {
         var staticMethods = {};
         var members = {};
         var methods = {};
+        var static2cls = {};
         // gather inherited members
         parents.forEach(function(cls) {
-            if (cls.__static__) {
+            if (cls.__conf__.__static__) {
                 for (var attr in cls.__conf__.__static__) {
                     var thing = cls.__conf__.__static__[attr];
                     if (typeof thing === 'function') {
@@ -431,6 +435,7 @@ define('lib/score/oop', [], function() {
                     } else {
                         staticMembers[attr] = thing;
                     }
+                    static2cls[attr] = cls;
                 }
             }
             for (var attr in cls.__conf__) {
@@ -447,22 +452,10 @@ define('lib/score/oop', [], function() {
         });
         // init prototype
         var prototype = conf.__parent__ ? Object.create(conf.__parent__.prototype) : oop.Class.prototype;
-        // test whether any defined members were static in a parent class
-        for (var attr in conf) {
-            if (attr[0] === '_' && attr[1] === '_') {
-                continue;
-            }
-            if (attr !== 'toString' && (staticMethods[attr] || staticMembers[attr])) {
-                throw new Error('Member ' + clsName + '.' + attr + ' was static in a parent class');
-            }
-        }
         // gather static members
         if (conf.__static__) {
             for (var attr in conf.__static__) {
                 var thing = conf.__static__[attr];
-                if (methods[attr] || members[attr]) {
-                    throw new Error('Member ' + clsName + '.' + attr + ' was non-static in a parent class');
-                }
                 if (typeof thing === 'function') {
                     if (typeof staticMembers[attr] !== 'undefined') {
                         throw new Error('Static member ' + clsName + '.' + attr + ' was not a function in a parent class');
@@ -497,7 +490,17 @@ define('lib/score/oop', [], function() {
         // create class
         var cls = createConstructor(clsName, conf, parents, members, methods);
         for (var attr in staticMembers) {
-            cls[attr] = staticMembers[attr];
+            if (static2cls[attr]) {
+                (function(parent) {
+                    Object.defineProperty(cls, attr, {
+                        get: function() { return parent[attr]; },
+                        set: function(value) { parent[attr] = value; },
+                        enumerable: true,
+                    });
+                })(static2cls[attr]);
+            } else {
+                cls[attr] = staticMembers[attr];
+            }
         }
         for (var attr in staticMethods) {
             cls[attr] = staticMethods[attr];
@@ -524,6 +527,8 @@ define('lib/score/oop', [], function() {
 
     oop.Class.__conf__ = {
 
+        __name__: 'Class',
+
         __bind__: function(self, funcName) {
             console.warn('obj.__bind__("' + funcName + '") is deprecated, use obj.' + funcName + ' instead');
             if (typeof self[funcName] !== 'function') {
@@ -537,6 +542,8 @@ define('lib/score/oop', [], function() {
         }
 
     };
+
+    oop.Class.__name__ = 'Class';
 
     oop.Class.prototype.toString = function() {
         return oop.Class.__conf__.toString.call(this, this);

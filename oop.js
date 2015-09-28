@@ -5,347 +5,171 @@ define('lib/score/oop', [], function() {
     var superRe = /xyz/.test(function(){xyz;}) ? /\b__super__\b/ : /.*/;
     var argumentsRe = /xyz/.test(function(){xyz;}) ? /\barguments\b/ : /.*/;
 
+    var functionParameterNames = function(func) {
+        var i = 0;
+        var funcStr = func.toString();
+        var skipTo = function(chr) {
+            while (funcStr[i] !== chr) {
+                i++;
+                if (funcStr[i] !== '/') {
+                    continue;
+                }
+                i++;
+                if (funcStr[i] === '/') {
+                    i++;
+                    while (funcStr[i] !== '\n') {
+                        i++;
+                    }
+                } else if (funcStr[i] === '*') {
+                    i++;
+                    while (funcStr[i] !== '*' && funcStr[i + 1] !== '/') {
+                        i++;
+                    }
+                }
+            }
+            return i;
+        }
+        var startIdx = skipTo('(') + 1;
+        var stopIdx = skipTo(')');
+        return funcStr
+            .substring(startIdx, stopIdx)
+            .replace(/\/\*.*?\*\//, '')
+            .replace(/\/\/.*?\n/, '')
+            .trim()
+            .split(/\s*,\s*/);
+    };
+
     var createSubFunc = function(__super__, func, name) {
-        if (!name) {
-            name = 'UnnamedClass';
+        if (!argumentsRe.test(func) && func.length === 0 && (!__super__ || !superRe.test(func))) {
+            // none of the features below are required,
+            // just return the function
+            return func;
         }
-        var numargs = func.length;
-        if (!argumentsRe.test(func)) {
-            if (numargs === 0) {
-                if (__super__ && superRe.test(func)) {
-                    return eval('[function ' + name + '() {\n' +
-                    '    var tmp = this.__super__;\n' +
-                    '    this.__super__ = __super__;\n' +
-                    '    var result = func.call(this);\n' +
-                    '    this.__super__ = tmp;\n' +
-                    '    return result;\n' +
-                    '}]')[0];
-                } else {
-                    return func;
-                }
-            } else if (numargs === 1) {
-                if (__super__ && superRe.test(func)) {
-                    return eval('[function ' + name + '() {\n' +
-                    '    var tmp = this.__super__;\n' +
-                    '    this.__super__ = __super__;\n' +
-                    '    var result = func.call(this, this);\n' +
-                    '    this.__super__ = tmp;\n' +
-                    '    return result;\n' +
-                    '}]')[0];
-                } else {
-                    return eval('[function ' + name + '() {\n' +
-                    '    return func.call(this, this);\n' +
-                    '}]')[0];
-                }
-            } else if (numargs === 2) {
-                if (__super__ && superRe.test(func)) {
-                    return eval('[function ' + name + '(arg1) {\n' +
-                    '    var tmp = this.__super__;\n' +
-                    '    this.__super__ = __super__;\n' +
-                    '    var result = func.call(this, this, arg1);\n' +
-                    '    this.__super__ = tmp;\n' +
-                    '    return result;\n' +
-                    '}]')[0];
-                } else {
-                    return eval('[function ' + name + '(arg1) {\n' +
-                    '    return func.call(this, this, arg1);\n' +
-                    '}]')[0];
-                }
-            } else if (numargs === 3) {
-                if (__super__ && superRe.test(func)) {
-                    return eval('[function ' + name + '(arg1, arg2) {\n' +
-                    '    var tmp = this.__super__;\n' +
-                    '    this.__super__ = __super__;\n' +
-                    '    var result = func.call(this, this, arg1, arg2);\n' +
-                    '    this.__super__ = tmp;\n' +
-                    '    return result;\n' +
-                    '}]')[0];
-                } else {
-                    return eval('[function ' + name + '(arg1, arg2) {\n' +
-                    '    return func.call(this, this, arg1, arg2);\n' +
-                    '}]')[0];
-                }
-            } else if (numargs === 4) {
-                if (__super__ && superRe.test(func)) {
-                    return eval('[function ' + name + '(arg1, arg2, arg3) {\n' +
-                    '    var tmp = this.__super__;\n' +
-                    '    this.__super__ = __super__;\n' +
-                    '    var result = func.call(this, this, arg1, arg2, arg3);\n' +
-                    '    this.__super__ = tmp;\n' +
-                    '    return result;\n' +
-                    '}]')[0];
-                } else {
-                    return eval('[function ' + name + '(arg1, arg2, arg3) {\n' +
-                    '    return func.call(this, this, arg1, arg2, arg3);\n' +
-                    '}]')[0];
-                }
-            } else if (numargs === 5) {
-                if (__super__ && superRe.test(func)) {
-                    return eval('[function ' + name + '(arg1, arg2, arg3, arg4) {\n' +
-                    '    var tmp = this.__super__;\n' +
-                    '    this.__super__ = __super__;\n' +
-                    '    var result = func.call(this, this, arg1, arg2, arg3, arg4);\n' +
-                    '    this.__super__ = tmp;\n' +
-                    '    return result;\n' +
-                    '}]')[0];
-                } else {
-                    return eval('[function ' + name + '(arg1, arg2, arg3, arg4) {\n' +
-                    '    return func.call(this, this, arg1, arg2, arg3, arg4);\n' +
-                    '}]')[0];
-                }
-            } else if (numargs === 6) {
-                if (__super__ && superRe.test(func)) {
-                    return eval('[function ' + name + '(arg1, arg2, arg3, arg4, arg5) {\n' +
-                    '    var tmp = this.__super__;\n' +
-                    '    this.__super__ = __super__;\n' +
-                    '    var result = func.call(this, this, arg1, arg2, arg3, arg4, arg5);\n' +
-                    '    this.__super__ = tmp;\n' +
-                    '    return result;\n' +
-                    '}]')[0];
-                } else {
-                    return eval('[function ' + name + '(arg1, arg2, arg3, arg4, arg5) {\n' +
-                    '    return func.call(this, this, arg1, arg2, arg3, arg4, arg5);\n' +
-                    '}]')[0];
-                }
-            } else if (numargs === 7) {
-                if (__super__ && superRe.test(func)) {
-                    return eval('[function ' + name + '(arg1, arg2, arg3, arg4, arg5, arg6) {\n' +
-                    '    var tmp = this.__super__;\n' +
-                    '    this.__super__ = __super__;\n' +
-                    '    var result = func.call(this, this, arg1, arg2, arg3, arg4, arg5, arg6);\n' +
-                    '    this.__super__ = tmp;\n' +
-                    '    return result;\n' +
-                    '}]')[0];
-                } else {
-                    return eval('[function ' + name + '(arg1, arg2, arg3, arg4, arg5, arg6) {\n' +
-                    '    return func.call(this, this, arg1, arg2, arg3, arg4, arg5, arg6);\n' +
-                    '}]')[0];
-                }
-            } else if (numargs === 8) {
-                if (__super__ && superRe.test(func)) {
-                    return eval('[function ' + name + '(arg1, arg2, arg3, arg4, arg5, arg6, arg7) {\n' +
-                    '    var tmp = this.__super__;\n' +
-                    '    this.__super__ = __super__;\n' +
-                    '    var result = func.call(this, this, arg1, arg2, arg3, arg4, arg5, arg6, arg7);\n' +
-                    '    this.__super__ = tmp;\n' +
-                    '    return result;\n' +
-                    '}]')[0];
-                } else {
-                    return eval('[function ' + name + '(arg1, arg2, arg3, arg4, arg5, arg6, arg7) {\n' +
-                    '    return func.call(this, this, arg1, arg2, arg3, arg4, arg5, arg6, arg7);\n' +
-                    '}]')[0];
-                }
-            }
-        }
-        if (!argumentsRe.test(func)) {
-            var args = Array(numargs + 1);
-            if (__super__ && superRe.test(func)) {
-                return eval('[function ' + name + '() {\n' +
-                '    args[0] = this;\n' +
-                '    for (var i = numargs - 1; i >= 0; i--) {\n' +
-                '        args[i + 1] = arguments[i];\n' +
-                '    }\n' +
-                '    var tmp = this.__super__;\n' +
-                '    this.__super__ = __super__;\n' +
-                '    var result = func.apply(this, args);\n' +
-                '    this.__super__ = tmp;\n' +
-                '    return result;\n' +
-                '}]')[0];
-            } else {
-                return eval('[function ' + name + '() {\n' +
-                '    args[0] = this;\n' +
-                '    for (var i = numargs - 1; i >= 0; i--) {\n' +
-                '        args[i + 1] = arguments[i];\n' +
-                '    }\n' +
-                '    return func.apply(this, args);\n' +
-                '}]')[0];
-            }
+        var args = functionParameterNames(func).slice(1);
+        var declaration = 'function ' + name + '(' + args.join(', ') + ') {\n';
+        var body;
+        if (argumentsRe.test(func)) {
+            // function body contains `arguments`, so we wil pass the received
+            // arguments to the function.  this is a bad scenario
+            // performance-wise, as usage of `arguments` causes the browser to
+            // handle the function differently.
+            body = '    var args = new Array(arguments.length + 1);\n' +
+                   '    args[0] = this;\n' +
+                   '    for (var i = 0; i < arguments.length; i++) {\n' +
+                   '        args[i + 1] = arguments[i];\n' +
+                   '    }\n' +
+                   '    var result = func.apply(this, args);\n';
+        } else if (func.length > 1) {
+            body = '    var result = func.call(this, this, ' + args.join(', ') + ');\n';
+        } else if (func.length == 1) {
+            body = '    var result = func.call(this, this);\n';
+        } else {
+            body = '    var result = func.call(this);\n';
         }
         if (__super__ && superRe.test(func)) {
-            return eval('[function ' + name + '() {\n' +
-            '    var args = Array(arguments.length + 1);\n' +
-            '    args[0] = this;\n' +
-            '    for (var i = arguments.length - 1; i >= 0; i--) {\n' +
-            '        args[i + 1] = arguments[i];\n' +
-            '    }\n' +
-            '    var tmp = this.__super__;\n' +
-            '    this.__super__ = __super__;\n' +
-            '    var result = func.apply(this, args);\n' +
-            '    this.__super__ = tmp;\n' +
-            '    return result;\n' +
-            '}]')[0];
-        } else {
-            return eval('[function ' + name + '() {\n' +
-            '    var args = Array(arguments.length + 1);\n' +
-            '    args[0] = this;\n' +
-            '    for (var i = arguments.length - 1; i >= 0; i--) {\n' +
-            '        args[i + 1] = arguments[i];\n' +
-            '    }\n' +
-            '    return func.apply(this, args);\n' +
-            '}]')[0];
+            // store the current value of this.__super__ so we may restore it
+            // after the function call.  every function will have a correct
+            // __super__ value this way, even when calling one such function
+            // from another.
+            body = '    var __previous_super__ = this.__super__;\n' +
+                   '    this.__super__ = __super__;\n' +
+                   body +
+                   '    this.__super__ = __previous_super__;\n';
         }
+        body += '    return result;\n}';
+        // console.log('[' + declaration + body + ']');
+        return eval('[' + declaration + body + ']')[0];
     };
 
-    oop.Class = function(conf) {
-        if (typeof conf === 'undefined') {
-            conf = {};
+    var createConstructor = function(name, conf, parents, members, methods) {
+        var __init__, __parent_init__;
+        if (conf.__init__) {
+            __init__ = conf.__init__;
         }
-        // make sure we have a sane class name
-        var clsName = 'UnnamedClass';
-        if (conf.__name__) {
-            if (!/^_*[A-Z]/.test(conf.__name__)) {
-                console.warn('Class names should start with a capital letter', conf.__name__);
-            }
-            if (!/^_*[a-zA-Z][a-zA-Z0-9_]*$/.test(conf.__name__)) {
-                throw new Error('Invalid class name "' + conf.__name__ + '"');
-            }
-            clsName = conf.__name__;
-        }
-        // create the naked class object
-        var cls;
-        if (typeof conf.__init__ !== 'undefined') {
-            if (typeof conf.__init__ !== 'function') {
-                throw new Error(clsName.'.__init__ must be a function');
-            }
-            cls = createSubFunc(conf.__parent__, conf.__init__, clsName);
-        } else if (conf.__parent__) {
-            cls = createSubFunc(conf.__parent__, function(self) {
-                var args = [];
-                for (var i = 1; i < arguments.length; i++) {
-                    args.push(arguments[i]);
-                }
-                conf.__parent__.apply(self, args);
-            }, clsName);
-        } else {
-            cls = createSubFunc(null, function() {}, clsName);
-        }
-        // handle inheritance
-        if (conf.__parent__) {
-            cls.__parent__ = conf.__parent__;
-            if (typeof Object.create === 'function') {
-                cls.prototype = Object.create(conf.__parent__.prototype);
-            } else {
-                cls.prototype = {};
-                for (var i in conf.__parent__.prototype) {
-                    cls.prototype[i] = conf.__parent__.prototype[i];
-                }
-            }
-            cls.prototype.constructor = cls;
-        } else {
-            cls.prototype = {};
-            cls.prototype.__bind__ = function(funcname /* args */) {
-                var self = this;
-                if (typeof self[funcname] !== 'function') {
-                    throw new Error(cls.__name__ + ' has no function ' + funcname);
-                }
-                if (arguments.length == 1) {
-                    if (typeof self.__bound_methods__ === 'undefined') {
-                        self.__bound_methods__ = {};
-                    }
-                    if (typeof self.__bound_methods__[funcname] === 'undefined') {
-                        self.__bound_methods__[funcname] = function() {
-                            return self[funcname].apply(self, arguments);
-                        };
-                    }
-                    return self.__bound_methods__[funcname];
-                }
-                var args = [];
-                for (var i = 1; i < arguments.length; i++) {
-                    args.push(arguments[i]);
-                }
-                return function() {
-                    var newArgs = args;
-                    if (arguments.length) {
-                        newArgs = [];
-                        for (var i = 0; i < args.length; i++) {
-                            newArgs.push(args[i]);
-                        }
-                        for (var i = 0; i < arguments.length; i++) {
-                            newArgs.push(arguments[i]);
-                        }
-                    }
-                    return self[funcname].apply(self, newArgs);
-                };
-            };
-        }
-        // add some magic members
-        cls.__conf__ = conf;
-        cls.prototype.__class__ = cls;
-        // add toString()
-        if (conf.__name__) {
-            cls.__name__ = conf.__name__;
-            cls.toString = function() {
-                return cls.__name__;
-            };
-            cls.prototype.toString = function() {
-                return cls.__name__;
-            };
-        }
-        // set static members of parent classes
-        for (var parent = conf.__parent__; parent; parent = parent.__conf__.__parent__) {
-            if (!parent.__conf__.__static__) {
-                continue;
-            }
-            for (var attr in parent.__conf__.__static__) {
-                if (attr[0] === '_' && attr[1] === '_') {
-                    continue;
-                }
-                var value = parent.__conf__.__static__[attr];
-                if (typeof value === 'function') {
-                    cls[attr] = parent[attr];
-                }
-            }
-        }
-        // set static members of this class
-        if (conf.__static__) {
-            if (conf.__static__.__events__) {
-                oop.makeStaticEventListener(cls, conf.__static__.__events__);
-            }
-            for (var attr in conf.__static__) {
-                if (attr[0] === '_' && attr[1] === '_') {
-                    continue;
-                }
-                var value = conf.__static__[attr];
-                if (typeof value === 'function') {
-                    var __super__ = null;
-                    if (conf.__parent__ && conf.__parent__.__conf__.__static__ && typeof conf.__parent__.__conf__.__static__[attr] === 'function') {
-                        __super__ = conf.__parent__.__conf__.__static__[attr];
-                    }
-                    value = createSubFunc(__super__, conf.__static__[attr], clsName + '__' + attr);
-                    cls.prototype[attr] = (function(value) {
-                        return function() {
-                            return value.apply(this.__class__, arguments);
-                        };
-                    })(value);
+        for (var i = 0; i < parents.length; i++) {
+            if (parents[i].__conf__.__init__) {
+                if (!__init__) {
+                    __init__ = parents[i].__conf__.__init__;
                 } else {
-                    cls.prototype[attr] = value;
+                    __parent_init__ = parents[i].__conf__.__init__;
+                    break;
                 }
-                cls[attr] = value;
             }
         }
-        // set instance members
-        for (var attr in conf) {
-            if (attr[0] === '_' && attr[1] === '_') {
-                continue;
-            }
-            var value = conf[attr];
-            if (typeof value === 'function') {
-                var __super__ = null;
-                if (conf.__parent__ && typeof conf.__parent__.prototype[attr] === 'function') {
-                    __super__ = conf.__parent__.prototype[attr];
+        var args;
+        if (!__init__) {
+            args = [];
+        } else {
+            args = functionParameterNames(__init__).slice(1);
+        }
+        var declaration = 'function ' + name + '(' + args.join(', ') + ') {\n';
+        var call, body = '';
+        if (__init__ && argumentsRe.test(__init__)) {
+            call = '        var args = [];\n' +
+                   '        for (var i = 0; i < arguments.length; i++) {\n' +
+                   '            args.push("arguments[" + i + "]");\n' +
+                   '        }\n' +
+                   '        return eval("new ' + name + '(" + args.join(", ") + ")")\n';
+        } else {
+            call = '        return new ' + name + '(' + args.join(', ') + ')\n';
+        }
+        body = '    if (!(this instanceof ' + name + ')) {\n' +
+                    call +
+               '    }\n';
+        for (var attr in members) {
+            if (members[attr] instanceof Array) {
+                body += '    this.' + attr + ' = [\n';
+                var lines = [];
+                for (var i = 0; i < members[attr].length; i++) {
+                    lines.push('        members.' + attr + '[' + i + ']');
                 }
-                value = createSubFunc(__super__, conf[attr], clsName + '__' + attr);
+                body += lines.join(',\n') + '\n';
+                body += '    ];\n';
+            } else if (members[attr] instanceof Object) {
+                body += '    this.' + attr + ' = {\n';
+                var lines = [];
+                for (var key in members[attr]) {
+                    lines.push('        "' + key + '": members.' + attr + '["'+ key + '"]');
+                }
+                body += lines.join(',\n') + '\n';
+                body += '    };\n';
+            } else {
+                body += '    this.' + attr + ' = members.' + attr + ';\n';
             }
-            cls.prototype[attr] = value;
         }
-        // make event listener
-        if (conf.__events__) {
-            oop.makeEventListener(cls, conf.__events__);
+        for (attr in methods) {
+            body += '    this.' + attr + ' = methods.' + attr + '.bind(this);\n';
         }
-        return cls;
+        if (__init__) {
+            var initCall;
+            if (argumentsRe.test(__init__)) {
+                initCall = '    var args = new Array(arguments.length + 1);\n' +
+                           '    args[0] = this;\n' +
+                           '    for (var i = 0; i < arguments.length; i++) {\n' +
+                           '        args[i + 1] = arguments[i];\n' +
+                           '    }\n' +
+                           '    __init__.apply(this, args);\n';
+            } else if (__init__.length > 1) {
+                initCall = '    __init__.call(this, this, ' + args.join(', ') + ');\n';
+            } else if (__init__.length == 1) {
+                initCall = '    __init__.call(this, this);\n';
+            } else {
+                initCall = '    __init__.call(this);\n';
+            }
+            if (__parent_init__) {
+                initCall = '    var __previous_super__ = this.__super__;\n' +
+                           '    this.__super__ = __parent_init__;\n' +
+                           initCall +
+                           '    this.__super__ = __previous_super__;\n';
+            }
+            body += initCall;
+        }
+        body += '}';
+        // console.log('[' + declaration + body + ']');
+        return eval('[' + declaration + body + ']')[0];
     };
 
-    oop.makeEventListener = function(cls) {
+    var makeEventListener = function(cls) {
         // XXX: Almost an exact copy of makeStaticEventListener(),
         //      update accordingly.
         var validEvents = {};
@@ -447,7 +271,7 @@ define('lib/score/oop', [], function() {
         };
     };
 
-    oop.makeStaticEventListener = function(cls) {
+    var makeStaticEventListener = function(cls) {
         // XXX: Almost an exact copy of makeEventListener(),
         //      update accordingly.
         var validEvents = {};
@@ -547,6 +371,149 @@ define('lib/score/oop', [], function() {
             }
             return result;
         };
+    };
+
+    var checkConf = function(conf) {
+        if (typeof conf !== 'object') {
+            throw new Error('Class configuration not an object');
+        }
+        // make sure we have a sane class name
+        if (!conf.__name__) {
+            throw new Error('No class __name__ defined');
+        }
+        if (!/^_*[A-Z]/.test(conf.__name__)) {
+            console.warn('Class names should start with a capital letter', conf.__name__);
+        }
+        if (!/^_*[a-zA-Z][a-zA-Z0-9_]*$/.test(conf.__name__)) {
+            throw new Error('Invalid class name "' + conf.__name__ + '"');
+        }
+        // ensure __init__ is a function
+        if (typeof conf.__init__ !== 'undefined') {
+            if (typeof conf.__init__ !== 'function') {
+                throw new Error(clsName + '.__init__ must be a function');
+            }
+        }
+        // TODO: assert that conf.__parent__ is an oop.Class type
+    };
+
+    var gatherParents = function(conf) {
+        if (!conf.__parent__) {
+            return [];
+        }
+        var parents = [];
+        for (var parent = conf.__parent__; parent; parent = parent.__conf__.__parent__) {
+            parents.push(parent);
+        }
+        parents = parents.reverse();
+        return parents;
+    };
+
+    oop.Class = function(conf) {
+        checkConf(conf);
+        var clsName = conf.__name__;
+        var parents = gatherParents(conf);
+        // gather members
+        var staticMembers = {};
+        var staticMethods = {};
+        var members = {};
+        var methods = {};
+        // gather inherited members
+        parents.forEach(function(cls) {
+            if (cls.__static__) {
+                for (var attr in cls.__conf__.__static__) {
+                    var thing = cls.__conf__.__static__[attr];
+                    if (typeof thing === 'function') {
+                        staticMethods[attr] = thing;
+                    } else {
+                        staticMembers[attr] = thing;
+                    }
+                }
+            }
+            for (var attr in cls.__conf__) {
+                if (attr[0] === '_' && attr[1] === '_') {
+                    continue;
+                }
+                var thing = cls.__conf__[attr];
+                if (typeof thing === 'function') {
+                    methods[attr] = cls.prototype[attr];
+                } else {
+                    members[attr] = thing;
+                }
+            }
+        });
+        // init prototype
+        var prototype = conf.__parent__ ? Object.create(conf.__parent__.prototype) : oop.Class.prototype;
+        // test whether any defined members were static in a parent class
+        for (var attr in conf) {
+            if (attr[0] === '_' && attr[1] === '_') {
+                continue;
+            }
+            if (staticMethods[attr] || staticMembers[attr]) {
+                throw new Error('Member ' + clsName + '.' + attr + ' was static in a parent class');
+            }
+        }
+        // gather static members
+        if (conf.__static__) {
+            for (var attr in conf.__static__) {
+                var thing = conf.__static__[attr];
+                if (methods[attr] || members[attr]) {
+                    throw new Error('Member ' + clsName + '.' + attr + ' was non-static in a parent class');
+                }
+                if (typeof thing === 'function') {
+                    if (typeof staticMembers[attr] !== 'undefined') {
+                        throw new Error('Static member ' + clsName + '.' + attr + ' was not a function in a parent class');
+                    }
+                    prototype[attr] = staticMethods[attr] = createSubFunc(staticMethods[attr], thing, clsName + '__' + attr);
+                } else {
+                    if (typeof staticMethods[attr] === 'function') {
+                        throw new Error('Static member ' + clsName + '.' + attr + ' was a function in a parent class');
+                    }
+                    prototype[attr] = staticMembers[attr] = thing;
+                }
+            }
+        }
+        // gather non-static members
+        for (var attr in conf) {
+            if (attr[0] === '_' && attr[1] === '_') {
+                continue;
+            }
+            var thing = conf[attr];
+            if (typeof thing === 'function') {
+                if (typeof members[attr] !== 'undefined') {
+                    throw new Error('Member ' + clsName + '.' + attr + ' was not a function in a parent class');
+                }
+                prototype[attr] = methods[attr] = createSubFunc(methods[attr], thing, clsName + '__' + attr);
+            } else {
+                if (typeof methods[attr] !== 'undefined') {
+                    throw new Error('Member ' + clsName + '.' + attr + ' was a function in a parent class');
+                }
+                prototype[attr] = members[attr] = thing;
+            }
+        }
+        // create class
+        var cls = createConstructor(clsName, conf, parents, members, methods);
+        cls.__conf__ = conf;
+        cls.__name__ = conf.__name__;
+        cls.prototype = prototype;
+        cls.prototype.__class__ = cls;
+        cls.toString = function() {
+            return cls.__name__;
+        };
+        // make event listener
+        // FIXME: the next few function calls should occur much earlier, before
+        // the call to createConstructor().  otherwise the resulting methods
+        // (on, off, etc.) cannot be bound to the instance by the constructor.
+        if (conf.__events__) {
+            makeEventListener(cls);
+        }
+        if (conf.__static__ && conf.__static__.__events__) {
+            makeStaticEventListener(cls);
+        }
+        return cls;
+    };
+
+    oop.Class.prototype.toString = function(self) {
+        return '<' + self.__class__.__name__ + ' object>';
     };
 
     oop.Exception = function(message) {

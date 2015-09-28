@@ -12,9 +12,9 @@ define('lib/score/oop', [], function() {
      * arbitrary whitespace in function definition correctly.
      * @return array
      */
-    var extractParameterNames = function(func) {
+    var extractParameterNames = function(function_) {
         var i = 0;
-        var funcStr = func.toString();
+        var funcStr = function_.toString();
         var skipTo = function(chr) {
             while (funcStr[i] !== chr) {
                 i++;
@@ -54,16 +54,15 @@ define('lib/score/oop', [], function() {
      *   `this.__super__()` within the function body.
      */
     var createSubFunc = function(__super__, function_, name) {
-        var func = function_;
-        if (!argumentsRe.test(func) && func.length === 0 && (!__super__ || !superRe.test(func))) {
+        if (!argumentsRe.test(function_) && function_.length === 0 && (!__super__ || !superRe.test(function_))) {
             // none of the features below are required,
             // just return the function
-            return func;
+            return function_;
         }
-        var args = extractParameterNames(func).slice(1);
+        var args = extractParameterNames(function_).slice(1);
         var declaration = 'function ' + name + '(' + args.join(', ') + ') {\n';
         var body;
-        if (argumentsRe.test(func)) {
+        if (argumentsRe.test(function_)) {
             // function body contains `arguments`, so we wil pass the received
             // arguments to the function.  this is a bad scenario
             // performance-wise, as usage of `arguments` causes the browser to
@@ -73,15 +72,15 @@ define('lib/score/oop', [], function() {
                    '    for (var i = 0; i < arguments.length; i++) {\n' +
                    '        args[i + 1] = arguments[i];\n' +
                    '    }\n' +
-                   '    var result = func.apply(this, args);\n';
-        } else if (func.length > 1) {
-            body = '    var result = func.call(this, this, ' + args.join(', ') + ');\n';
-        } else if (func.length == 1) {
-            body = '    var result = func.call(this, this);\n';
+                   '    var result = function_.apply(this, args);\n';
+        } else if (function_.length > 1) {
+            body = '    var result = function_.call(this, this, ' + args.join(', ') + ');\n';
+        } else if (function_.length == 1) {
+            body = '    var result = function_.call(this, this);\n';
         } else {
-            body = '    var result = func.call(this);\n';
+            body = '    var result = function_.call(this);\n';
         }
-        if (__super__ && superRe.test(func)) {
+        if (__super__ && superRe.test(function_)) {
             // store the current value of this.__super__ so we may restore it
             // after the function call.  every function will have a correct
             // __super__ value this way, even when calling one such function
@@ -129,7 +128,7 @@ define('lib/score/oop', [], function() {
                    '        }\n' +
                    '        return eval("new ' + name + '(" + args.join(", ") + ")")\n';
         } else {
-            call = '        return new ' + name + '(' + args.join(', ') + ')\n';
+            call = '        return new ' + name + '(' + args.join(', ') + ');\n';
         }
         body = '    if (!(this instanceof ' + name + ')) {\n' +
                     call +
@@ -214,6 +213,11 @@ define('lib/score/oop', [], function() {
         }
     };
 
+    /**
+     * Returns the configured inheritance chain as a list.
+     * The first entry will always be oop.Class, the last entry will always be
+     * the configured __parent__ (if there is one).
+     */
     var gatherParents = function(conf) {
         var parents = [oop.Class];
         if (!conf.__parent__) {
@@ -265,7 +269,7 @@ define('lib/score/oop', [], function() {
             }
         });
         // init prototype
-        var prototype = conf.__parent__ ? Object.create(conf.__parent__.prototype) : oop.Class.prototype;
+        var prototype = Object.create(conf.__parent__ ? conf.__parent__.prototype : oop.Class.prototype);
         // gather static members
         if (conf.__static__) {
             conf.__static__.__unbound__ = {}
@@ -314,6 +318,7 @@ define('lib/score/oop', [], function() {
         cls.__name__ = conf.__name__;
         cls.prototype = prototype;
         cls.prototype.__class__ = cls;
+        cls.prototype.constructor = cls;
         cls.toString = function() {
             return cls.__name__;
         };
@@ -337,7 +342,13 @@ define('lib/score/oop', [], function() {
                 }
             }
         }
-        var events = static_ ? conf.__static__.__events__ : conf.__events__;
+        var events = conf.__events__;
+        if (static_) {
+            events = [];
+            if (conf.__static__ && conf.__static__.__events__) {
+                events = conf.__static__.__events__;
+            }
+        }
         if (events instanceof Array) {
             for (var i = 0; i < events.length; i++) {
                 names[events[i]] = cls;
@@ -526,7 +537,7 @@ define('lib/score/oop', [], function() {
         this.stack = (new Error()).stack;
     };
 
-    oop.Exception.prototype = Error.prototype;
+    oop.Exception.prototype = Object.create(Error.prototype);
 
     oop.Exception.__conf__ = {
         __name__: "Exception"

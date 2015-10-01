@@ -91,22 +91,22 @@ define('lib/score/oop', [], function() {
         var declaration = 'function ' + name + '(' + args.join(', ') + ') {\n';
         var body;
         if (argumentsRe.test(function_)) {
-            // function body contains `arguments`, so we wil pass the received
+            // function body contains `arguments`, so we will pass the received
             // arguments to the function.  this is a bad scenario
             // performance-wise, as usage of `arguments` causes the browser to
             // handle the function differently.
-            body = '    var args = new Array(arguments.length + 1);\n' +
-                   '    args[0] = this;\n' +
+            body = '    var __args__ = new Array(arguments.length + 1);\n' +
+                   '    __args__[0] = this;\n' +
                    '    for (var i = 0; i < arguments.length; i++) {\n' +
-                   '        args[i + 1] = arguments[i];\n' +
+                   '        __args__[i + 1] = arguments[i];\n' +
                    '    }\n' +
-                   '    var result = function_.apply(this, args);\n';
+                   '    var __result__ = function_.apply(this, __args__);\n';
         } else if (function_.length > 1) {
-            body = '    var result = function_.call(this, this, ' + args.join(', ') + ');\n';
+            body = '    var __result__ = function_.call(this, this, ' + args.join(', ') + ');\n';
         } else if (function_.length == 1) {
-            body = '    var result = function_.call(this, this);\n';
+            body = '    var __result__ = function_.call(this, this);\n';
         } else {
-            body = '    var result = function_.call(this);\n';
+            body = '    var __result__ = function_.call(this);\n';
         }
         if (__super__ && superRe.test(function_)) {
             // store the current value of this.__super__ so we may restore it
@@ -118,10 +118,12 @@ define('lib/score/oop', [], function() {
                    body +
                    '    this.__super__ = __previous_super__;\n';
         } else {
-            body = '    delete this.__super__;\n' +
-                   body;
+            body = '    var __previous_super__ = this.__super__;\n' +
+                   '    delete this.__super__;\n' +
+                   body +
+                   '    this.__super__ = __previous_super__;\n';
         }
-        body += '    return result;\n}';
+        body += '    return __result__;\n}';
         // console.log('[' + declaration + body + ']');
         return eval('[' + declaration + body + ']')[0];
     };

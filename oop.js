@@ -162,7 +162,11 @@ define('lib/score/oop', [], function() {
         }
         body = '    if (!(this instanceof ' + name + ')) {\n' +
                     call +
-               '    }\n';
+               '    }\n' +
+               '    this.__events__ = {\n' +
+               '        validNames: ' + name + '.prototype.__events__.validNames,\n' +
+               '        listeners: {}\n' +
+               '    };\n';
         for (var attr in members) {
             if (members[attr] instanceof Array) {
                 body += '    this.' + attr + ' = [\n';

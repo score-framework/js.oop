@@ -451,7 +451,7 @@ define('lib/score/oop', [], function() {
                 return true;
             }
             var args = [];
-            for (var i = 1; i < arguments.length; i++) {
+            for (var i = 2; i < arguments.length; i++) {
                 args.push(arguments[i]);
             }
             var listeners = self.__events__.listeners[event].slice(0);

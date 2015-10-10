@@ -133,7 +133,7 @@ define('lib/score/oop', [], function() {
         if (conf.__init__) {
             __init__ = conf.__init__;
         }
-        for (var i = 0; i < parents.length; i++) {
+        for (var i = parents.length - 1; i >= 0; i--) {
             if (parents[i].__conf__.__init__) {
                 if (!__init__) {
                     __init__ = parents[i].__conf__.__init__;

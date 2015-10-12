@@ -133,7 +133,7 @@ define('lib/score/oop', [], function() {
         if (conf.__init__) {
             __init__ = conf.__init__;
         }
-        for (var i = 0; i < parents.length; i++) {
+        for (var i = parents.length - 1; i >= 0; i--) {
             if (parents[i].__conf__.__init__) {
                 if (!__init__) {
                     __init__ = parents[i].__conf__.__init__;
@@ -162,7 +162,11 @@ define('lib/score/oop', [], function() {
         }
         body = '    if (!(this instanceof ' + name + ')) {\n' +
                     call +
-               '    }\n';
+               '    }\n' +
+               '    this.__events__ = {\n' +
+               '        validNames: ' + name + '.prototype.__events__.validNames,\n' +
+               '        listeners: {}\n' +
+               '    };\n';
         for (var attr in members) {
             if (members[attr] instanceof Array) {
                 body += '    this.' + attr + ' = [\n';
@@ -451,7 +455,7 @@ define('lib/score/oop', [], function() {
                 return true;
             }
             var args = [];
-            for (var i = 1; i < arguments.length; i++) {
+            for (var i = 2; i < arguments.length; i++) {
                 args.push(arguments[i]);
             }
             var listeners = self.__events__.listeners[event].slice(0);

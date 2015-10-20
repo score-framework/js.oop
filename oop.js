@@ -28,7 +28,9 @@
 
 define('lib/score/oop', [], function() {
 
-    var oop = {};
+    var oop = {
+        VERSION: "0.2"
+    };
 
     var superRe = /\b__super__\b/;
     var argumentsRe = /\barguments\b/;

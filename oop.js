@@ -162,11 +162,13 @@ define('lib/score/oop', [], function() {
         }
         body = '    if (!(this instanceof ' + name + ')) {\n' +
                     call +
-               '    }\n' +
-               '    this.__events__ = {\n' +
-               '        validNames: ' + name + '.prototype.__events__.validNames,\n' +
-               '        listeners: {}\n' +
-               '    };\n';
+               '    }\n';
+        if (parents[parents.length - 1].prototype.__events__) {
+            body += '        this.__events__ = {\n' +
+                    '            validNames: ' + name + '.prototype.__events__.validNames,\n' +
+                    '            listeners: {}\n' +
+                    '        };\n';
+        }
         for (var attr in members) {
             if (members[attr] instanceof Array) {
                 body += '    this.' + attr + ' = [\n';
@@ -253,12 +255,15 @@ define('lib/score/oop', [], function() {
      * the configured __parent__ (if there is one).
      */
     var gatherParents = function(conf) {
-        var parents = [oop.Class];
         if (!conf.__parent__) {
-            return parents;
+            return [oop.Class];
         }
+        var parents = [];
         for (var parent = conf.__parent__; parent; parent = parent.__conf__.__parent__) {
             parents.push(parent);
+        }
+        if (parents[parents.length - 1] !== oop.Exception) {
+            parents.push(oop.Class);
         }
         parents = parents.reverse();
         return parents;
@@ -572,17 +577,31 @@ define('lib/score/oop', [], function() {
     };
 
     oop.Exception = function(message) {
-        Error.call(this);
-        this.name = this.__class__.name;
-        this.message = message;
-        this.stack = (new Error()).stack;
+        return oop.Exception.__conf__.__init__.call(this, this, message);
     };
+
+    oop.Exception.__name__ = 'Exception';
+
+    oop.Exception.__init__ = 'Exception';
 
     oop.Exception.prototype = Object.create(Error.prototype);
 
     oop.Exception.__conf__ = {
-        __name__: "Exception"
+        __name__: "Exception",
+
+        __init__: function(self, message) {
+            Error.call(this);
+            this.name = this.__class__.name;
+            this.message = message;
+            this.stack = (new Error()).stack;
+        }
     };
+
+    oop.Exception.prototype.toString = function() {
+        return oop.Class.__conf__.toString.call(this, this);
+    };
+
+    oop.Exception.prototype.__str__ = oop.Exception.prototype.toString;
 
     return oop;
 

@@ -29,7 +29,7 @@
 define('lib/score/oop', [], function() {
 
     var oop = {
-        VERSION: "0.2"
+        VERSION: "0.2.1"
     };
 
     var superRe = /\b__super__\b/;

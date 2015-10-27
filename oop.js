@@ -361,7 +361,7 @@ define('lib/score/oop', [], function() {
         cls.prototype.__class__ = cls;
         cls.prototype.constructor = cls;
         cls.toString = function() {
-            return cls.__name__;
+            return '<' + cls.__name__ + ' class>';
         };
         // handle event definitions
         setEventNames(cls, conf, true);

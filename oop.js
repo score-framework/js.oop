@@ -65,7 +65,7 @@ define('lib/score/oop', [], function() {
                 }
             }
             return i;
-        }
+        };
         var startIdx = skipTo('(') + 1;
         var stopIdx = skipTo(')');
         return funcStr
@@ -499,7 +499,7 @@ define('lib/score/oop', [], function() {
                     return oop.Class.off.call(this, this, eventList, callback);
                 },
                 trigger: function(event) {
-                    var args = new Array(arguments.length + 1)
+                    var args = new Array(arguments.length + 1);
                     args[0] = this;
                     for (var i = 0; i < arguments.length; i++) {
                         args[i + 1] = arguments[i];
@@ -560,7 +560,7 @@ define('lib/score/oop', [], function() {
     };
 
     oop.Class.prototype.trigger = function Class__trigger(event) {
-        var args = new Array(arguments.length + 1)
+        var args = new Array(arguments.length + 1);
         args[0] = this;
         for (var i = 0; i < arguments.length; i++) {
             args[i + 1] = arguments[i];

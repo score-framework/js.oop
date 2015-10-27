@@ -44,7 +44,7 @@ define('lib/score/oop', [], function() {
      */
     var extractParameterNames = function(function_) {
         var i = 0;
-        var funcStr = function_.toString();
+        var funcStr = extractParameterNames.toString.call(function_);
         var skipTo = function(chr) {
             while (funcStr[i] !== chr) {
                 i++;

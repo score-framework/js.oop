@@ -7,8 +7,9 @@ libraries for the development of large scale web projects. Powered by strg.at_.
 .. _The SCORE Framework: http://score-framework.org
 .. _strg.at: http://strg.at
 
+*********
 score.oop
-=========
+*********
 
 .. _js_oop:
 
@@ -25,7 +26,7 @@ The whole module tries to mimic classes in python for two reasons:
   
 
 Creating Classes
-----------------
+================
 
 The basic usage of the module is as follows::
 
@@ -70,7 +71,7 @@ available as an attribute to the class::
 
 
 Attributes
-----------
+==========
 
 You can define the default values of attributes as well. Such values are
 specific to each object, meaning that the following code will print two
@@ -96,7 +97,7 @@ distinct speed values::
 
 
 Sub-Classing
-------------
+============
 
 In order to create a sub-class, you only need to pass the configuration value
 `__parent__`::
@@ -165,7 +166,7 @@ functions, not just the constructor::
 
 
 Static Attributes
------------------
+=================
 
 You can assign static values to the *class* (in contrast to the *objects* of
 the class) by passing another configuration value called `__static__`::
@@ -241,7 +242,7 @@ values for the same calculation, for example::
 
 
 Events
-------
+======
 
 It is possible to mark a class as an events source by providing an
 `__events__` configuration::
@@ -274,7 +275,7 @@ Both functions will throw an `Error` if the provided event name was
 not configured.
 
 Static Events
-`````````````
+-------------
 
 It is also possible to configure event handling at the class level. In such
 cases, the context of these callbacks is the class::

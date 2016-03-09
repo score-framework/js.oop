@@ -313,7 +313,7 @@ define('lib/score/oop', [], function() {
         var prototype = Object.create(conf.__parent__ ? conf.__parent__.prototype : oop.Class.prototype);
         // gather static members
         if (conf.__static__) {
-            conf.__static__.__unbound__ = {}
+            conf.__static__.__unbound__ = {};
             for (var attr in conf.__static__) {
                 var thing = conf.__static__[attr];
                 if (typeof thing === 'function') {

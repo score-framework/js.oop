@@ -7,6 +7,7 @@ libraries for the development of large scale web projects. Powered by strg.at_.
 .. _The SCORE Framework: http://score-framework.org
 .. _strg.at: http://strg.at
 
+
 *********
 score.oop
 *********

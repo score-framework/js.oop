@@ -26,7 +26,24 @@
  * Licensee has his registered seat, an establishment or assets.
  */
 
-define(function() {
+// Universal Module Loader
+// https://github.com/umdjs/umd
+// https://github.com/umdjs/umd/blob/v1.0.0/returnExports.js
+(function (root, factory) {
+    if (typeof define === 'function' && define.amd) {
+        // AMD. Register as an anonymous module.
+        define([], factory);
+    } else if (typeof module === 'object' && module.exports) {
+        // Node. Does not work with strict CommonJS, but
+        // only CommonJS-like environments that support module.exports,
+        // like Node.
+        module.exports = factory();
+    } else {
+        // Browser globals (root is window)
+        root.score = root.score || {};
+        root.score.oop = factory();
+  }
+}(this, function () {
 
     var oop = {
         VERSION: "0.2.1"
@@ -607,4 +624,4 @@ define(function() {
 
     return oop;
 
-});
+}));

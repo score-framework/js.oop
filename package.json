@@ -1,0 +1,25 @@
+{
+  "name": "score.oop",
+  "version": "0.2.1",
+  "description": "Helpers for supporting an object oriented programming style.",
+  "main": "oop.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/score-framework/js.oop.git"
+  },
+  "keywords": [
+    "score",
+    "oop",
+    "object",
+    "class"
+  ],
+  "author": "strg.at <score@strg.at>",
+  "license": "LGPL-3.0",
+  "bugs": {
+    "url": "https://github.com/score-framework/js.oop/issues"
+  },
+  "homepage": "https://github.com/score-framework/js.oop#readme"
+}

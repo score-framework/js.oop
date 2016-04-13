@@ -26,7 +26,7 @@
  * Licensee has his registered seat, an establishment or assets.
  */
 
-define('lib/score/oop', [], function() {
+define(function() {
 
     var oop = {
         VERSION: "0.2.1"

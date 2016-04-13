@@ -46,7 +46,7 @@
 }(this, function () {
 
     var oop = {
-        VERSION: "0.2.1"
+        VERSION: "0.3"
     };
 
     var superRe = /\b__super__\b/;

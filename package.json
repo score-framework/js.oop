@@ -1,6 +1,6 @@
 {
   "name": "score.oop",
-  "version": "0.2.1",
+  "version": "0.3",
   "description": "Helpers for supporting an object oriented programming style.",
   "main": "oop.js",
   "scripts": {

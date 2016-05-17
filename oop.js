@@ -144,7 +144,7 @@
         }
         body += '    return __result__;\n}';
         // console.log('[' + declaration + body + ']');
-        return eval('[' + declaration + body + ']')[0];
+        /* jshint -W061 */ return eval('[' + declaration + body + ']')[0];
     };
 
     var createConstructor = function(name, conf, parents, members, methods) {
@@ -239,7 +239,7 @@
         }
         body += '}';
         // console.log('[' + declaration + body + ']');
-        return eval('[' + declaration + body + ']')[0];
+        /* jshint -W061 */ return eval('[' + declaration + body + ']')[0];
     };
 
     var checkConf = function(conf) {

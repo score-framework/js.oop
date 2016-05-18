@@ -47,7 +47,7 @@
     score.extend('oop', [], function() {
 
         var oop = {
-            VERSION: "0.3"
+            __version__: "0.4.0"
         };
 
         var superRe = /\b__super__\b/;

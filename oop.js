@@ -581,26 +581,28 @@
             return oop.Exception.__conf__.__init__.call(this, this, message);
         };
 
-        oop.Exception.__name__ = 'Exception';
-
-        oop.Exception.__init__ = 'Exception';
-
-        oop.Exception.prototype = Object.create(Error.prototype);
-
         oop.Exception.__conf__ = {
             __name__: "Exception",
 
             __init__: function(self, message) {
                 Error.call(this);
-                this.name = this.__class__.name;
+                this.name = this.__class__.__name__;
                 this.message = message;
                 this.stack = (new Error()).stack;
             }
         };
 
+        oop.Exception.__name__ = oop.Exception.__conf__.__name__;
+
+        oop.Exception.__init__ = oop.Exception.__conf__.__init__;
+
+        oop.Exception.prototype = Object.create(Error.prototype);
+
         oop.Exception.prototype.toString = function() {
             return oop.Class.__conf__.toString.call(this, this);
         };
+
+        oop.Exception.prototype.__class__ = oop.Exception;
 
         oop.Exception.prototype.__str__ = oop.Exception.prototype.toString;
 

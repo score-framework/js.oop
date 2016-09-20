@@ -273,7 +273,21 @@ with `on`. The context of the callback (i.e. the `this` value) is always the
 object triggering the event.
 
 Both functions will throw an `Error` if the provided event name was
-not configured.
+not configured. It is possible to allow arbitrary events on a class by setting
+the ``__events__`` value to True::
+
+    var Dog = oop.Class({
+        __name__: 'Dog',
+        __parent__: Animal,
+        __events__: true
+    });
+
+    var otis = Dog();
+
+    otis.on('bork', function() {
+        console.log('Not barking!');
+    });
+
 
 Static Events
 -------------

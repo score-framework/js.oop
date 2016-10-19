@@ -587,7 +587,7 @@
             __init__: function(self, message) {
                 Error.call(this);
                 this.name = this.__class__.__name__;
-                this.message = message;
+                this.message = message || '';
                 this.stack = (new Error()).stack;
             }
         };

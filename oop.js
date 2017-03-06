@@ -40,7 +40,7 @@
         module.exports = factory();
     } else {
         // Browser globals (root is window)
-        root.score.extend('dom', [], factory);
+        root.score.extend('oop', [], factory);
     }
 })(this, function () {
 

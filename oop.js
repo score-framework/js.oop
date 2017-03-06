@@ -1,5 +1,5 @@
 /**
- * Copyright © 2015,2016 STRG.AT GmbH, Vienna, Austria
+ * Copyright © 2015-2017 STRG.AT GmbH, Vienna, Austria
  *
  * This file is part of the The SCORE Framework.
  *
@@ -45,7 +45,7 @@
 })(this, function () {
 
     var oop = {
-        __version__: "0.4.3"
+        __version__: "0.5.0"
     };
 
     var superRe = /\b__super__\b/;

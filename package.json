@@ -22,8 +22,5 @@
   "bugs": {
     "url": "https://github.com/score-framework/js.oop/issues"
   },
-  "homepage": "https://github.com/score-framework/js.oop#readme",
-  "dependencies": {
-      "score.init": "0.0.x"
-  }
+  "homepage": "https://github.com/score-framework/js.oop#readme"
 }

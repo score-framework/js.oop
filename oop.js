@@ -113,11 +113,8 @@
             // arguments to the function.  this is a bad scenario
             // performance-wise, as usage of `arguments` causes the browser to
             // handle the function differently.
-            body = '    var __args__ = new Array(arguments.length + 1);\n' +
-                   '    __args__[0] = this;\n' +
-                   '    for (var i = 0; i < arguments.length; i++) {\n' +
-                   '        __args__[i + 1] = arguments[i];\n' +
-                   '    }\n' +
+            body = '    var __args__ = Array.prototype.slice.call(arguments, 0);\n' +
+                   '    __args__.splice(0, 0, this);\n' +
                    '    var __result__ = function_.apply(this, __args__);\n';
         } else if (function_.length > 1) {
             body = '    var __result__ = function_.call(this, this, ' + args.join(', ') + ');\n';
@@ -170,11 +167,11 @@
         var declaration = 'function ' + name + '(' + args.join(', ') + ') {\n';
         var call, body;
         if (__init__ && argumentsRe.test(__init__)) {
-            call = '        var args = [];\n' +
-                   '        for (var i = 0; i < arguments.length; i++) {\n' +
-                   '            args.push("arguments[" + i + "]");\n' +
+            call = '        var __args__ = [];\n' +
+                   '        for (var __idx__ = 0; __idx__ < arguments.length; __idx__++) {\n' +
+                   '            __args__.push("arguments[" + __idx__ + "]");\n' +
                    '        }\n' +
-                   '        return eval("new ' + name + '(" + args.join(", ") + ")")\n';
+                   '        return eval("new ' + name + '(" + __args__.join(", ") + ")")\n';
         } else {
             call = '        return new ' + name + '(' + args.join(', ') + ');\n';
         }
@@ -215,12 +212,9 @@
             conf.__wrapped_init__ = createSubFunc(__parent_init__, __init__, name + '__init__');
             var initCall;
             if (argumentsRe.test(__init__)) {
-                initCall = '    var args = new Array(arguments.length + 1);\n' +
-                           '    args[0] = this;\n' +
-                           '    for (var i = 0; i < arguments.length; i++) {\n' +
-                           '        args[i + 1] = arguments[i];\n' +
-                           '    }\n' +
-                           '    __init__.apply(this, args);\n';
+                initCall = '    var __args__ = Array.prototype.slice.call(arguments, 0);\n' +
+                           '    __args__.splice(0, 0, this);\n' +
+                           '    __init__.apply(this, __args__);\n';
             } else if (__init__.length > 1) {
                 initCall = '    __init__.call(this, this, ' + args.join(', ') + ');\n';
             } else if (__init__.length == 1) {
